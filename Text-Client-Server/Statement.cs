@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 
@@ -79,9 +80,14 @@ namespace Text_Client_Server
 
         #endregion
 
-        public Statement()  
+        public Statement()
         {
             throw new NotImplementedException("Nie zaimplementowana metoda - Statement");
+        }
+
+        public Statement(string buffer)
+        {
+            _charbuffer = buffer;
         }
 
         public void CreateBuffer()
@@ -91,12 +97,27 @@ namespace Text_Client_Server
 
         public string ReadStatement()
         {
-            throw new NotImplementedException("Nie zaimplementowana metoda - ReadStatement");
+            string[] temp = Encoding();
+            StringBuilder StrBuilder = new StringBuilder();
+            foreach (var str in temp)
+            {
+                StrBuilder.Append(str + "\n");
+            }
+
+            return StrBuilder.ToString();
         }
 
-        public string Encoding()
+
+        public string[] Encoding()
         {
-            throw new NotImplementedException("Nie zaimplementowana metoda - Encoding");
+            Regex reg = new Regex("([A-Z]\\S+): ([a-z]*[0-@]*)");
+            MatchCollection matches = reg.Matches(_charbuffer);
+            string[] str = new string[matches.Count];
+
+            for (int i = 0; i < matches.Count; i++) // wpisanie wyrazen do lancuchow znakow
+                str[i] = matches[i].Value;
+
+            return str;
         }
     }
 }
