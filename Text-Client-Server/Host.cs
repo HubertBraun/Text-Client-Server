@@ -10,7 +10,8 @@ namespace Text_Client_Server
         protected int _port;
         public int _ReceivedData = 0;
         protected Socket _Socket;
-
+        public int NS;   // numer sekwencyjny
+        public int ID;   // identyfikator obliczen
         public Host(int port, IPAddress IP)
         {
             _port = port;
