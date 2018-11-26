@@ -45,16 +45,17 @@ namespace Text_Client_Server
             try
             {
                 byte[] buffer = new byte[1024];
+                int[] BufferLenght;
                 while (true)
                 {
                     Console.WriteLine("Proszę wpisać tekst");
                     string[] UserInput = ReadUserInput();
                     Statement st = new Statement(UserInput, client.NS, client.ID, 0);
-                    buffer = st.CreateBuffer();
-                    client.Write(buffer);
+                    buffer = st.CreateBuffer(out BufferLenght);
+                    client.Write(buffer,BufferLenght);
                     buffer = new byte[1024];
                     client.Read(ref buffer);
-                    Console.WriteLine("Server: \n{0}", BufferUtilites.ReadBuffer(buffer, client._ReceivedData));
+                    Console.WriteLine("Server: \n{0}", BufferUtilites.BufferToString(buffer, client._ReceivedData));
                 }
             }
             catch (Exception e)

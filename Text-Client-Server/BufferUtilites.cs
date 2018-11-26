@@ -4,7 +4,7 @@ namespace Text_Client_Server
 {
     internal static class BufferUtilites
     {
-        public static string ReadBuffer(byte[] buffer, int ReceivedData) // zamiana buffora na string
+        public static string BufferToString(byte[] buffer, int ReceivedData) // zamiana buffora na string
         {
             return Encoding.ASCII.GetString(buffer, 0, ReceivedData);
         }
@@ -13,5 +13,6 @@ namespace Text_Client_Server
         {
             return Encoding.ASCII.GetBytes(str);
         }
+
     }
 }

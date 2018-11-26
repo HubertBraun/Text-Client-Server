@@ -21,9 +21,14 @@ namespace Text_Client_Server
         }
 
 
-        public void Write(byte[] buffer)
+        public void Write(byte[] buffer, int[] BufferLenght)
         {
-            _Socket.SendTo(buffer, buffer.Length, SocketFlags.None, _EndPoint);
+            int Lenghts = 0;
+            for (int i = 0; i < BufferLenght.Length; i++)
+            {
+                _Socket.SendTo(buffer, Lenghts, BufferLenght[i], SocketFlags.None, _EndPoint);
+                Lenghts += BufferLenght[i];
+            }
         }
 
         public void Read(ref byte[] buffer)

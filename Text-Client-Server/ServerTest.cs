@@ -7,18 +7,20 @@ namespace Text_Client_Server
         private static void Main(string[] args)
         {
             Server server = new Server(27015); //  tworzenie gniazda na danym porcie
+            Statement st = new Statement();
             try
             {
                 byte[] buffer = new byte[1024];
+                int[] BufferLenght;
                 Console.WriteLine("Waiting");
 
                 while (true)
                 {
-                    buffer = new byte[1024];
                     server.Read(ref buffer);
-                    Console.WriteLine("Client: {0}", BufferUtilites.ReadBuffer(buffer, server._ReceivedData));
-                    Array.Resize(ref buffer, server._ReceivedData);
-                    server.Write(buffer); // wyslanie echa
+                    st = new Statement(BufferUtilites.BufferToString(buffer, server._ReceivedData));
+                    buffer = st.CreateBuffer(out BufferLenght);
+                    //Console.WriteLine("Client: {0}", BufferUtilites.BufferToString(buffer, server._ReceivedData));
+                    server.Write(buffer, BufferLenght); // wyslanie echa
                 }
             }
 

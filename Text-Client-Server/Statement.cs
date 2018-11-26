@@ -12,32 +12,32 @@ using System.Threading.Tasks;
  *  KOMUNIKATY KLIENT -> SERWER
  *
  *  Standardowy komunikat
- *  Operacja: OP               Status: ST                   NumerSekwencyjny: NS     Czas: sek:ms:ns    // pierwszy komunikat
- *  IdentyfikatorSesji: ID     IdentyfikatorObliczen: CID    PoleSilni: FS           Czas: sek:ms:ns    // drugi komunikat
- *  Liczba1: ARG1              Liczba2: ARG2                                         Czas: sek:ms:ns    // trzeci komunikat
+ *  Operacja: OP         Status: ST             NumerSekwencyjny: NS     Czas: sek:ms:ns    // pierwszy komunikat
+ *  IdSesji: ID          IdObliczen: CID        FlagaSilni: FS           Czas: sek:ms:ns    // drugi komunikat
+ *  Liczba1: ARG1        Liczba2: ARG2          LiczbaKomunikatow: LK    Czas: sek:ms:ns    // trzeci komunikat
  *
  *  Prosba o podanie historii
- *  Operacja: OP               Status: ST                   NumerSekwencyjny: NS     Czas: sek:ms:ns    // pierwszy komunikat
- *  IdentyfikatorSesji: ID     IdentyfikatorObliczen: CID   Historia: HS             Czas: sek:ms:ns    // drugi komunikat
+ *  Operacja: OP         Status: ST             NumerSekwencyjny: NS     Czas: sek:ms:ns    // pierwszy komunikat
+ *  IdSesji: ID          IdObliczen: CID        Historia: HS             Czas: sek:ms:ns    // drugi komunikat
  *  
  *
  * KOMUNIKATY SERWER -> KLIENT
  *
  * Standardowy komunikat
- * Operacja: OP               Status: ST                   NumerSekwencyjny: NS     Czas: sek:ms:ns    // pierwszy komunikat
- * IdentyfikatorSesji: ID     IdentyfikatorObliczen: CID    PoleSilni: FS           Czas: sek:ms:ns    // drugi komunikat
- * Liczba1: ARG1              Blad: B                                               Czas: sek:ms:ns    // trzeci komunikat
+ * Operacja: OP          Status: ST             NumerSekwencyjny: NS     Czas: sek:ms:ns    // pierwszy komunikat
+ * IdSesji: ID           IdObliczen: CID        FlagaSilni: FS           Czas: sek:ms:ns    // drugi komunikat
+ * Liczba1: ARG1         Blad: B                                         Czas: sek:ms:ns    // trzeci komunikat
  *
  * Wyslanie historii  
  * Standardowy komunikat
- * Operacja: OP               Status: ST                   NumerSekwencyjny: NS     Czas: sek:ms:ns    // pierwszy komunikat
- * IdentyfikatorSesji: ID     IdentyfikatorObliczen: CID   PoleSilni: FS            Czas: sek:ms:ns    // drugi komunikat
- * Liczba1: ARG1              Liczba2: ARG2                Liczba3: ARG3            Czas: sek:ms:ns    // trzeci komunikat
+ * Operacja: OP          Status: ST             NumerSekwencyjny: NS     Czas: sek:ms:ns    // pierwszy komunikat
+ * IdSesji: ID           IdObliczen: CID        FlagaSilni: FS           Czas: sek:ms:ns    // drugi komunikat
+ * Liczba1: ARG1         Liczba2: ARG2          Liczba3: ARG3            Czas: sek:ms:ns    // trzeci komunikat
  *
  * Operacja z bledem
- * Operacja: OP               Status: ST                   NumerSekwencyjny: NS     Czas: sek:ms:ns    // pierwszy komunikat
- * IdentyfikatorSesji: ID     IdentyfikatorObliczen: CID   PoleSilni: FS            Czas: sek:ms:ns    // drugi komunikat
- * Liczba1: ARG1              Liczba2: ARG2                Blad: B                  Czas: sek:ms:ns    // trzeci komunikat
+ * Operacja: OP          Status: ST             NumerSekwencyjny: NS     Czas: sek:ms:ns    // pierwszy komunikat
+ * IdSesji: ID           IdObliczen: CID        FlagaSilni: FS           Czas: sek:ms:ns    // drugi komunikat
+ * Liczba1: ARG1         Liczba2: ARG2          Blad: B                  Czas: sek:ms:ns    // trzeci komunikat
  *
  */
 
@@ -49,14 +49,15 @@ namespace Text_Client_Server
 
         private string
             Time = "Czas: ",
-            Arg1 = "Arg1: ", 
-            Arg2 = "Arg2: ", 
-            OP = "Operacja: ", 
-            ST = "Status: ", 
-            NS = "NumerSekwencyjny: ", 
-            ID = "IdentyfikatorSesji: ", 
-            CID = "IdentyfikatorObliczen: ",
-            FS = "FlagaSilni: "; 
+            Arg1 = "Arg1: ",
+            Arg2 = "Arg2: ",
+            OP = "Operacja: ",
+            ST = "Status: ",
+            NS = "NumerSekwencyjny: ",
+            ID = "IDSesji: ",
+            CID = "IDObliczen: ",
+            FS = "FlagaSilni: ",
+            LK = "LiczbaKomunikatow: "; // przyjmuje wartosci od 1-9
 
         #region structs
 
@@ -93,7 +94,6 @@ namespace Text_Client_Server
 
         public Statement()
         {
-            throw new NotImplementedException("Nie zaimplementowana metoda - Statement");
         }
 
         public Statement(string buffer)
@@ -102,10 +102,10 @@ namespace Text_Client_Server
         }
 
 
-        public Statement(string[] Arguments, int ns, int id, int cid)     // argumenty, numer sekwencyjny, identyfikator sesji, identyfikator obliczen
+        public Statement(string[] Arguments, int ns, int id, int cid)     // argumenty, numer sekwencyjny, id sesji, id obliczen
         {
             Arg1 += Arguments[0];    // pierwsza liczba
-            FS += _FS.No;    // ustawienie flagi silni na nie
+            FS = _FS.No;    // ustawienie flagi silni na nie
 
             switch (Arguments[1])   // rozpoznawanie operacji matematycznej
             {
@@ -155,7 +155,7 @@ namespace Text_Client_Server
             Buffer.BlockCopy(src, 0, dst, dstOffset, src.Length);
         }
 
-        public byte[] CreateBuffer()  // operacja, status, numer sekwencyjny, identyfikator sesji, identyfikator obliczen
+        public byte[] CreateBuffer(out int[] BufferLenght)  
         {
             string[] temp = new string[9];
             temp[0] = OP;
@@ -173,31 +173,39 @@ namespace Text_Client_Server
             }
 
 
-            byte[] toReturn = new byte[(OP.Length + ST.Length + NS.Length + ID.Length
-                                       + CID.Length + FS.Length + Arg1.Length + Arg2.Length + Time.Length)*2];
+            byte[] Buffer = new byte[(OP.Length + ST.Length + NS.Length + ID.Length
+                                       + CID.Length + FS.Length + Arg1.Length 
+                                      + Arg2.Length + Time.Length + LK.Length + 1)*2];
 
+            BufferLenght = new int[3];
             int lenght = 0;
-
-            BufferCopy(OP.ToBuffer(), toReturn, lenght);
+            // pierwszy blok danych
+            BufferCopy(OP.ToBuffer(), Buffer, lenght);
             lenght += OP.ToBuffer().Length;
-
-            BufferCopy(ST.ToBuffer(), toReturn, lenght);
+            BufferCopy(ST.ToBuffer(), Buffer, lenght);
             lenght += ST.ToBuffer().Length;
-
-            BufferCopy(NS.ToBuffer(), toReturn, lenght);
+            BufferCopy(NS.ToBuffer(), Buffer, lenght);
             lenght += NS.ToBuffer().Length;
-            BufferCopy(ID.ToBuffer(), toReturn, lenght);
+            BufferCopy(ID.ToBuffer(), Buffer, lenght);
             lenght += ID.ToBuffer().Length;
-            BufferCopy(CID.ToBuffer(), toReturn, lenght);
+            BufferLenght[0] = lenght;
+            // drugi blok danych
+            BufferCopy(CID.ToBuffer(), Buffer, lenght);
             lenght += CID.ToBuffer().Length;
-            BufferCopy(FS.ToBuffer(), toReturn, lenght);
+            BufferCopy(FS.ToBuffer(), Buffer, lenght);
             lenght += FS.ToBuffer().Length;
-            BufferCopy(Arg1.ToBuffer(), toReturn, lenght);
+            BufferCopy(Arg1.ToBuffer(), Buffer, lenght);
             lenght += Arg1.ToBuffer().Length;
-            BufferCopy(Arg2.ToBuffer(), toReturn, lenght);
+            BufferCopy(Arg2.ToBuffer(), Buffer, lenght);
             lenght += Arg2.ToBuffer().Length;
-            BufferCopy(Time.ToBuffer(), toReturn, lenght);
-            return toReturn;
+            BufferLenght[1] = lenght - BufferLenght[0];
+            // trzeci blok danych
+            BufferCopy(Time.ToBuffer(), Buffer, lenght);
+            lenght += Time.ToBuffer().Length;
+            BufferCopy((LK + "3").ToBuffer(), Buffer, lenght);
+            lenght += (LK + "3").ToBuffer().Length;
+            BufferLenght[2] = lenght - BufferLenght[0] - BufferLenght[1];
+            return Buffer;  // zwraca bufor oraz dlugosc poszczegolnych sektorow
         }
 
         public string ReadStatement()
