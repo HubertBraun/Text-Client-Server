@@ -49,6 +49,7 @@
     <Compile Include="BufferUtilites.cs" />
     <Compile Include="Client.cs" />
     <Compile Include="ClientTest.cs" />
+    <Compile Include="History.cs" />
     <Compile Include="Host.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Server.cs" />
