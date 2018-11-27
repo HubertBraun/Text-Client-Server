@@ -48,7 +48,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>Text_Client_Server.ServerTest</StartupObject>
+    <StartupObject>Text_Client_Server.ClientTest</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />

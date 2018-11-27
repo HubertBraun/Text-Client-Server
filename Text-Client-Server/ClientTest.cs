@@ -27,7 +27,7 @@ namespace Text_Client_Server
             }
             else
             {
-                reg = new Regex("(\\d+)\\s*?(\\D)");
+                reg = new Regex("(-?[0-9]+,?[0-9]*)\\s*?(\\D)");
                 m = reg.Match(UserInput);
                 groups = m.Groups;
                 str = new string[2];

@@ -14,19 +14,20 @@ namespace Text_Client_Server
                 byte[] buffer = new byte[1024];
                 int[] BufferLenght;
                 Console.WriteLine("Waiting");
-
+                string error;
                 while (true)
                 {
                     server.Read(ref buffer);
                     st = new Statement(BufferUtilites.BufferToString(buffer, server._ReceivedData));
+                    Console.WriteLine("".PadLeft(50, '*'));
                     Console.WriteLine("Odebrane:");
                     Console.WriteLine(st.ReadStatement());
-                    Console.WriteLine(BufferUtilites.BufferToString(buffer, buffer.Length));
-                    answer = server.Calculate(st.Encoding());
-                    buffer = st.CreateBuffer(out BufferLenght, answer);
+                    answer = server.Calculate(st.Encoding(),out error);
+
+                    buffer = st.CreateBuffer(out BufferLenght, answer, error);
                     Console.WriteLine("Wyslane");
                     Console.WriteLine(st.ReadStatement());
-                    Console.WriteLine(BufferUtilites.BufferToString(buffer, buffer.Length));
+                    Console.WriteLine("".PadLeft(50, '*'));
                     server.Write(buffer, BufferLenght); // wyslanie echa
                 }
             }

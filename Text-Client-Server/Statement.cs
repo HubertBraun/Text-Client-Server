@@ -72,7 +72,9 @@ namespace Text_Client_Server
             internal const string ID = "IDSesji: ";
             internal const string CID = "IDObliczen: ";
             internal const string FS = "FlagaSilni: ";
+            internal const string ERR = "Blad: ";
             internal const string LK = "LiczbaKomunikatow: "; // przyjmuje wartosci od 1-9
+
         }
 
         internal struct _OP // pole operacji
@@ -98,10 +100,11 @@ namespace Text_Client_Server
 
         internal struct _ERR // pole bledow
         {
-            internal const string NotAllowed = "Status: dzielenieprzezzero";
-            internal const string OverFlow = "Status: przepelnienie";
-            internal const string Factorial = "Status: silniazliczbyujemnej";
-            internal const string Other = "Status: nierozpoznanedzialanie";
+            internal const string NoError = "Blad: brakbledu";
+            internal const string NotAllowed = "Blad: dzielenieprzezzero";
+            internal const string OverFlow = "Blad: przepelnienie";
+            internal const string Factorial = "Blad: silniazliczbyujemnej";
+            internal const string Other = "Blad: nierozpoznanyblad";
         }
 
         #endregion
@@ -183,14 +186,34 @@ namespace Text_Client_Server
             Buffer.BlockCopy(src, 0, dst, dstOffset, src.Length);
         }
 
-        public byte[] CreateBuffer(out int[] BufferLenght, double answer)
+        private void CreateCharbuff()
+        {
+            string[] str = new string[9];
+            str[0] = OP;
+            str[1] = ST;
+            str[2] = NS;
+            str[3] = ID;
+            str[4] = CID;
+            str[5] = FS;
+            str[6] = Arg1;
+            str[7] = Arg2;
+            str[8] = Time;
+            for (int i = 0; i < str.Length; i++)
+            {
+                _charbuffer += str[i];
+            }
+        }
+
+
+        public byte[] CreateBuffer(out int[] BufferLenght, double answer, string err)
         {
             NS = GetValue(NS);
             NS = _Keys.NS + Convert.ToInt32(NS + 1);    //zwiekszenie numeru sekwencyjnego o 1
             Arg1 = _Keys.Arg1 + answer;
-            Arg2 = _Keys.Arg2;
             Time = _Keys.Time + "0:0:0";
+            Arg2 = err;
 
+            CreateCharbuff();
 
             byte[] Buffer = new byte[(OP.Length + ST.Length + NS.Length + ID.Length
                                       + CID.Length + FS.Length + Arg1.Length
@@ -224,29 +247,13 @@ namespace Text_Client_Server
             BufferCopy((LK + "3").ToBuffer(), Buffer, lenght);
             lenght += (LK + "3").ToBuffer().Length;
             BufferLenght[2] = lenght - BufferLenght[0] - BufferLenght[1];
-            Console.WriteLine("dfdgd");
-            Console.WriteLine(BufferUtilites.BufferToString(Buffer, Buffer.Length));
 
             return Buffer; // zwraca bufor oraz dlugosc poszczegolnych sektorow
         }
 
         public byte[] CreateBuffer(out int[] BufferLenght)
         {
-            string[] temp = new string[9];
-            temp[0] = OP;
-            temp[1] = ST;
-            temp[2] = NS;
-            temp[3] = ID;
-            temp[4] = CID;
-            temp[5] = FS;
-            temp[6] = Arg1;
-            temp[7] = Arg2;
-            temp[8] = Time;
-            for (int i = 0; i < temp.Length; i++)
-            {
-                _charbuffer += temp[i];
-            }
-
+            CreateCharbuff();
 
             byte[] Buffer = new byte[(OP.Length + ST.Length + NS.Length + ID.Length
                                       + CID.Length + FS.Length + Arg1.Length
