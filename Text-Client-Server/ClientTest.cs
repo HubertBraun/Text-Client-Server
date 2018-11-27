@@ -51,10 +51,10 @@ namespace Text_Client_Server
                     string[] UserInput = ReadUserInput();
                     Statement st = new Statement(UserInput, client.NS, client.ID, 0);
                     buffer = st.CreateBuffer(out BufferLenght);
-                    Console.WriteLine(BufferUtilites.BufferToString(buffer, buffer.Length));
                     client.Write(buffer, BufferLenght);
                     buffer = new byte[1024];
                     client.Read(ref buffer);
+                    Console.WriteLine("Server: {0}", client.ReadAnswer(buffer));
                 }
             }
             catch (Exception e)

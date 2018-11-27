@@ -1,5 +1,4 @@
 ﻿using System;
-
 namespace Text_Client_Server
 {
     internal class TestClass

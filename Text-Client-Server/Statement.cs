@@ -61,6 +61,20 @@ namespace Text_Client_Server
 
         #region structs
 
+        internal struct _Keys //nazwy kluczy
+        {
+            internal const string Time = "Czas: ";
+            internal const string Arg1 = "Arg1: ";
+            internal const string Arg2 = "Arg2: ";
+            internal const string OP = "Operacja: ";
+            internal const string ST = "Status: ";
+            internal const string NS = "NumerSekwencyjny: ";
+            internal const string ID = "IDSesji: ";
+            internal const string CID = "IDObliczen: ";
+            internal const string FS = "FlagaSilni: ";
+            internal const string LK = "LiczbaKomunikatow: "; // przyjmuje wartosci od 1-9
+        }
+
         internal struct _OP // pole operacji
         {
             internal const string Mul = "Operacja: mnozenie";
@@ -102,7 +116,8 @@ namespace Text_Client_Server
             string[] temp = Encoding();
             for (int i = 0; i < temp.Length; i++)
             {
-                temp[i] = Regex.Replace(temp[i], "[A-Z]\\S+: ", "");
+                //temp[i] = Regex.Replace(temp[i], "[A-Z]\\S+: ", "");
+                temp[i] = GetValue(temp[i]);
             }
 
             OP += temp[0]; // operacja
@@ -166,6 +181,53 @@ namespace Text_Client_Server
         private void BufferCopy(Array src, Array dst, int dstOffset)
         {
             Buffer.BlockCopy(src, 0, dst, dstOffset, src.Length);
+        }
+
+        public byte[] CreateBuffer(out int[] BufferLenght, double answer)
+        {
+            NS = GetValue(NS);
+            NS = _Keys.NS + Convert.ToInt32(NS + 1);    //zwiekszenie numeru sekwencyjnego o 1
+            Arg1 = _Keys.Arg1 + answer;
+            Arg2 = _Keys.Arg2;
+            Time = _Keys.Time + "0:0:0";
+
+
+            byte[] Buffer = new byte[(OP.Length + ST.Length + NS.Length + ID.Length
+                                      + CID.Length + FS.Length + Arg1.Length
+                                      + Arg2.Length + Time.Length + LK.Length + 1) * 2];
+
+            BufferLenght = new int[3];
+            int lenght = 0;
+            // pierwszy blok danych
+            BufferCopy(OP.ToBuffer(), Buffer, lenght);
+            lenght += OP.ToBuffer().Length;
+            BufferCopy(ST.ToBuffer(), Buffer, lenght);
+            lenght += ST.ToBuffer().Length;
+            BufferCopy(NS.ToBuffer(), Buffer, lenght);
+            lenght += NS.ToBuffer().Length;
+            BufferCopy(ID.ToBuffer(), Buffer, lenght);
+            lenght += ID.ToBuffer().Length;
+            BufferLenght[0] = lenght;
+            // drugi blok danych
+            BufferCopy(CID.ToBuffer(), Buffer, lenght);
+            lenght += CID.ToBuffer().Length;
+            BufferCopy(FS.ToBuffer(), Buffer, lenght);
+            lenght += FS.ToBuffer().Length;
+            BufferCopy(Arg1.ToBuffer(), Buffer, lenght);
+            lenght += Arg1.ToBuffer().Length;
+            BufferCopy(Arg2.ToBuffer(), Buffer, lenght);
+            lenght += Arg2.ToBuffer().Length;
+            BufferLenght[1] = lenght - BufferLenght[0];
+            // trzeci blok danych
+            BufferCopy(Time.ToBuffer(), Buffer, lenght);
+            lenght += Time.ToBuffer().Length;
+            BufferCopy((LK + "3").ToBuffer(), Buffer, lenght);
+            lenght += (LK + "3").ToBuffer().Length;
+            BufferLenght[2] = lenght - BufferLenght[0] - BufferLenght[1];
+            Console.WriteLine("dfdgd");
+            Console.WriteLine(BufferUtilites.BufferToString(Buffer, Buffer.Length));
+
+            return Buffer; // zwraca bufor oraz dlugosc poszczegolnych sektorow
         }
 
         public byte[] CreateBuffer(out int[] BufferLenght)
@@ -233,16 +295,23 @@ namespace Text_Client_Server
             return StrBuilder.ToString();
         }
 
+        public static string GetValue(string str)
+        {
+            return Regex.Replace(str, "[A-Z]\\S+: ", "");
+        }
 
         public string[] Encoding()
         {
+            return Encoding(_charbuffer);
+        }
+        public static string[] Encoding(string charbuffer)
+        {
             Regex reg = new Regex("([A-Z]\\S+): ([a-z]*-?[0-@]*,?[0-@]*)");
-            MatchCollection matches = reg.Matches(_charbuffer);
+            MatchCollection matches = reg.Matches(charbuffer);
             string[] str = new string[matches.Count];
             for (int i = 0; i < matches.Count; i++) // wpisanie wyrazen do lancuchow znakow
             {
                 str[i] = matches[i].Value;
-
             }
 
             return str;

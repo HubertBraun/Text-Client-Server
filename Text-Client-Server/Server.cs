@@ -11,21 +11,25 @@ namespace Text_Client_Server
             _Socket.Bind(_IpEndPoint);
         }
 
-        public void Calculate(string[] charbuff)
+        public double Calculate(string[] charbuff)
         {
             double arg1 = Convert.ToDouble(charbuff[6] = Regex.Replace(charbuff[6], "[A-Z]\\S+: ", ""));
             double arg2 = Convert.ToDouble(charbuff[7] = Regex.Replace(charbuff[7], "[A-Z]\\S+: ", ""));
-
+            double toReturn = 0;
             switch (charbuff[0]) //operacja
             {
                 case Statement._OP.Sub:
-                    Console.WriteLine("{0} - {1} = {2}", arg1, arg2, arg1 - arg2);
+                    toReturn = arg1 - arg2;
+                    Console.WriteLine("{0} - {1} = {2}", arg1, arg2, toReturn);
                     break;
                 case Statement._OP.Div:
-                    Console.WriteLine("{0} / {1} = {2}", arg1, arg2, arg1 / arg2);
+                    toReturn = arg1 / arg2;
+
+                    Console.WriteLine("{0} / {1} = {2}", arg1, arg2, toReturn);
                     break;
                 case Statement._OP.Mul:
-                    Console.WriteLine("{0} * {1} = {2}", arg1, arg2, arg1 * arg2);
+                    toReturn = arg1 * arg2;
+                    Console.WriteLine("{0} * {1} = {2}", arg1, arg2, toReturn);
                     break;
                 case Statement._OP.Exp:
                     //Console.WriteLine("{0} ^ {1} = {2}", arg1, arg2, Math.Pow(arg1 - arg2);
@@ -34,6 +38,8 @@ namespace Text_Client_Server
                     throw new ArgumentException("Nierozpoznana operacja");
                     break;
             }
+            return toReturn;
+
         }
     }
 }

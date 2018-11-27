@@ -8,6 +8,7 @@ namespace Text_Client_Server
         {
             Server server = new Server(27015); //  tworzenie gniazda na danym porcie
             Statement st = new Statement();
+            double answer = 0;
             try
             {
                 byte[] buffer = new byte[1024];
@@ -18,8 +19,14 @@ namespace Text_Client_Server
                 {
                     server.Read(ref buffer);
                     st = new Statement(BufferUtilites.BufferToString(buffer, server._ReceivedData));
-                    buffer = st.CreateBuffer(out BufferLenght);
-                    server.Calculate(st.Encoding());
+                    Console.WriteLine("Odebrane:");
+                    Console.WriteLine(st.ReadStatement());
+                    Console.WriteLine(BufferUtilites.BufferToString(buffer, buffer.Length));
+                    answer = server.Calculate(st.Encoding());
+                    buffer = st.CreateBuffer(out BufferLenght, answer);
+                    Console.WriteLine("Wyslane");
+                    Console.WriteLine(st.ReadStatement());
+                    Console.WriteLine(BufferUtilites.BufferToString(buffer, buffer.Length));
                     server.Write(buffer, BufferLenght); // wyslanie echa
                 }
             }
