@@ -10,26 +10,30 @@ namespace Text_Client_Server
         {
             _Socket.Bind(_IpEndPoint);
         }
-        public new void Read(ref byte[] buffer)     // metoda przeslonieta
+
+        public void Calculate(string[] charbuff)
         {
-            int lK = -1;    // liczba komunikatow do odebrania
-            Regex reg = new Regex("LiczbaKomunikatow: ([0-9])");   // wyrazenie znajdujace liczbe komunikatow
-            string charbuff = null;
-            for (int i = 0; i != lK; i++)
+            int arg1 = Convert.ToInt32(charbuff[6] = Regex.Replace(charbuff[6], "[A-Z]\\S+: ", ""));
+            int arg2 = Convert.ToInt32(charbuff[7] = Regex.Replace(charbuff[7], "[A-Z]\\S+: ", ""));
+
+            switch (charbuff[0]) //operacja
             {
-                _ReceivedData = _Socket.ReceiveFrom(buffer, ref _EndPoint);
-                charbuff += BufferUtilites.BufferToString(buffer, _ReceivedData);
-                Match m = reg.Match(charbuff);
-                GroupCollection groups = m.Groups;
-                if (m.Groups.Count == 2)
-                {
-                    lK = Convert.ToInt32(m.Groups[1].Value);    // przypisanie liczby komunikatow
-                }
-
+                case Statement._OP.Sub:
+                    Console.WriteLine("{0} - {1} = {2}", arg1, arg2, arg1 - arg2);
+                    break;
+                case Statement._OP.Div:
+                    Console.WriteLine("{0} / {1} = {2}", arg1, arg2, arg1 / arg2);
+                    break;
+                case Statement._OP.Mul:
+                    Console.WriteLine("{0} * {1} = {2}", arg1, arg2, arg1 * arg2);
+                    break;
+                case Statement._OP.Exp:
+                    //Console.WriteLine("{0} ^ {1} = {2}", arg1, arg2, Math.Pow(arg1 - arg2);
+                    break;
+                default:
+                    throw new ArgumentException("Nierozpoznana operacja");
+                    break;
             }
-
-            buffer = charbuff.ToBuffer();
-            _ReceivedData = buffer.Length;
         }
     }
 }

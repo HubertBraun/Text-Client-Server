@@ -1,5 +1,7 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using System.Net.Sockets;
+using System.Text.RegularExpressions;
 
 namespace Text_Client_Server
 {
@@ -10,8 +12,9 @@ namespace Text_Client_Server
         protected int _port;
         public int _ReceivedData = 0;
         protected Socket _Socket;
-        public int NS;   // numer sekwencyjny
-        public int ID;   // identyfikator obliczen
+        public int ID; // identyfikator obliczen
+        public int NS; // numer sekwencyjny
+
         public Host(int port, IPAddress IP)
         {
             _port = port;
@@ -33,7 +36,23 @@ namespace Text_Client_Server
 
         public void Read(ref byte[] buffer)
         {
-            _ReceivedData = _Socket.ReceiveFrom(buffer, ref _EndPoint);
+            int lK = -1; // liczba komunikatow do odebrania
+            Regex reg = new Regex("LiczbaKomunikatow: ([0-9])"); // wyrazenie znajdujace liczbe komunikatow
+            string charbuff = null;
+            for (int i = 0; i != lK; i++)
+            {
+                _ReceivedData = _Socket.ReceiveFrom(buffer, ref _EndPoint);
+                charbuff += BufferUtilites.BufferToString(buffer, _ReceivedData);
+                Match m = reg.Match(charbuff);
+                GroupCollection groups = m.Groups;
+                if (m.Groups.Count == 2)
+                {
+                    lK = Convert.ToInt32(m.Groups[1].Value); // przypisanie liczby komunikatow
+                }
+            }
+
+            buffer = charbuff.ToBuffer();
+            _ReceivedData = buffer.Length;
         }
     }
 }

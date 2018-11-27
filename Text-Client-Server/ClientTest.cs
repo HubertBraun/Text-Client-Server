@@ -5,26 +5,25 @@ namespace Text_Client_Server
 {
     internal static class ClientTest
     {
-
-
         private static string[] ReadUserInput()
         {
             Regex reg = new Regex("(\\d+)\\s*?(\\D)\\s*?(\\d+)");
-            string UserInput = Console.ReadLine();  // wczytanie danych do wyslania
+            string UserInput = Console.ReadLine(); // wczytanie danych do wyslania
             string[] str = new string[3];
             if (UserInput.ToLower() == "exit")
             {
                 str[0] = "exit";
                 return str;
             }
+
             Match m = reg.Match(UserInput);
             GroupCollection groups = m.Groups;
             if (m.Groups.Count == 4)
             {
                 str = new string[3];
-                str[0] = m.Groups[1].Value;     // pierwsza liczba
-                str[1] = m.Groups[2].Value;     // operacja matematyczna
-                str[2] = m.Groups[3].Value;     // druga liczba
+                str[0] = m.Groups[1].Value; // pierwsza liczba
+                str[1] = m.Groups[2].Value; // operacja matematyczna
+                str[2] = m.Groups[3].Value; // druga liczba
             }
             else
             {
@@ -32,8 +31,8 @@ namespace Text_Client_Server
                 m = reg.Match(UserInput);
                 groups = m.Groups;
                 str = new string[2];
-                str[0] = m.Groups[1].Value;     // pierwsza liczba
-                str[1] = m.Groups[2].Value;     // operacja matematyczna
+                str[0] = m.Groups[1].Value; // pierwsza liczba
+                str[1] = m.Groups[2].Value; // operacja matematyczna
             }
 
             return str;
@@ -52,7 +51,7 @@ namespace Text_Client_Server
                     string[] UserInput = ReadUserInput();
                     Statement st = new Statement(UserInput, client.NS, client.ID, 0);
                     buffer = st.CreateBuffer(out BufferLenght);
-                    client.Write(buffer,BufferLenght);
+                    client.Write(buffer, BufferLenght);
                     buffer = new byte[1024];
                     client.Read(ref buffer);
                     Console.WriteLine("Server: \n{0}", BufferUtilites.BufferToString(buffer, client._ReceivedData));
