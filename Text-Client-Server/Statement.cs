@@ -236,12 +236,14 @@ namespace Text_Client_Server
 
         public string[] Encoding()
         {
-            Regex reg = new Regex("([A-Z]\\S+): ([a-z]*[0-@]*)");
+            Regex reg = new Regex("([A-Z]\\S+): ([a-z]*-?[0-@]*,?[0-@]*)");
             MatchCollection matches = reg.Matches(_charbuffer);
             string[] str = new string[matches.Count];
-
             for (int i = 0; i < matches.Count; i++) // wpisanie wyrazen do lancuchow znakow
+            {
                 str[i] = matches[i].Value;
+
+            }
 
             return str;
         }

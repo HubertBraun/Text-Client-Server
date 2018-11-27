@@ -13,8 +13,8 @@ namespace Text_Client_Server
 
         public void Calculate(string[] charbuff)
         {
-            int arg1 = Convert.ToInt32(charbuff[6] = Regex.Replace(charbuff[6], "[A-Z]\\S+: ", ""));
-            int arg2 = Convert.ToInt32(charbuff[7] = Regex.Replace(charbuff[7], "[A-Z]\\S+: ", ""));
+            double arg1 = Convert.ToDouble(charbuff[6] = Regex.Replace(charbuff[6], "[A-Z]\\S+: ", ""));
+            double arg2 = Convert.ToDouble(charbuff[7] = Regex.Replace(charbuff[7], "[A-Z]\\S+: ", ""));
 
             switch (charbuff[0]) //operacja
             {

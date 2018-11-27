@@ -20,7 +20,6 @@ namespace Text_Client_Server
                     st = new Statement(BufferUtilites.BufferToString(buffer, server._ReceivedData));
                     buffer = st.CreateBuffer(out BufferLenght);
                     server.Calculate(st.Encoding());
-                    //Console.WriteLine("Client: {0}", BufferUtilites.BufferToString(buffer, server._ReceivedData));
                     server.Write(buffer, BufferLenght); // wyslanie echa
                 }
             }

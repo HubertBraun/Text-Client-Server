@@ -7,7 +7,7 @@ namespace Text_Client_Server
     {
         private static string[] ReadUserInput()
         {
-            Regex reg = new Regex("(\\d+)\\s*?(\\D)\\s*?(\\d+)");
+            Regex reg = new Regex("(-?[0-9]+,?[0-9]*)\\s*?(\\D)\\s*?(-?[0-9]+,?[0-9]*)");
             string UserInput = Console.ReadLine(); // wczytanie danych do wyslania
             string[] str = new string[3];
             if (UserInput.ToLower() == "exit")
@@ -51,10 +51,10 @@ namespace Text_Client_Server
                     string[] UserInput = ReadUserInput();
                     Statement st = new Statement(UserInput, client.NS, client.ID, 0);
                     buffer = st.CreateBuffer(out BufferLenght);
+                    Console.WriteLine(BufferUtilites.BufferToString(buffer, buffer.Length));
                     client.Write(buffer, BufferLenght);
                     buffer = new byte[1024];
                     client.Read(ref buffer);
-                    Console.WriteLine("Server: \n{0}", BufferUtilites.BufferToString(buffer, client._ReceivedData));
                 }
             }
             catch (Exception e)
