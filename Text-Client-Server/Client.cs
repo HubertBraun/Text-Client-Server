@@ -18,5 +18,14 @@ namespace Text_Client_Server
             else
                 return Statement.GetValue(str[7]);
         }
+
+        public Statement GetIDRequest()
+        {
+            string[] arguments = new string[3];
+            arguments[0] = arguments[2] = "0";
+            arguments[1] = "-";
+            Statement temp = new Statement(arguments, 0, -1, -1);
+            return temp;
+        }
     }
 }

@@ -43,13 +43,21 @@ namespace Text_Client_Server
             Client client = new Client(27015);
             try
             {
-                byte[] buffer = new byte[1024];
+                byte[] buffer = new byte[1024]; 
                 int[] BufferLenght;
+                Statement st = client.GetIDRequest();       // zadanie przydzielenia IDsesji
+                buffer = st.CreateBuffer(out BufferLenght); // wyslanie zadania
+                client.Write(buffer, BufferLenght);
+                client.Read(ref buffer);
+                st = new Statement(BufferUtilites.BufferToString(buffer, buffer.Length));
+                string[] temp = st.Encoding();
+                client.ID = Convert.ToInt32(Statement.GetValue(temp[3]));
+                Console.WriteLine("ID sesji: {0}", client.ID);
                 while (true)
                 {
                     Console.WriteLine("Proszę wpisać tekst");
                     string[] UserInput = ReadUserInput();
-                    Statement st = new Statement(UserInput, client.NS, client.ID, 0);
+                    st = new Statement(UserInput, client.NS, client.ID, 0);
                     buffer = st.CreateBuffer(out BufferLenght);
                     client.Write(buffer, BufferLenght);
                     buffer = new byte[1024];

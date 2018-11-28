@@ -135,8 +135,7 @@ namespace Text_Client_Server
         }
 
 
-        public Statement(string[] Arguments, int ns, int id,
-            int cid) // argumenty, numer sekwencyjny, id sesji, id obliczen
+        public Statement(string[] Arguments, int ns, int id,int cid) // argumenty, numer sekwencyjny, id sesji, id obliczen
         {
             Arg1 += Arguments[0]; // pierwsza liczba
             FS = _FS.No; // ustawienie flagi silni na nie
@@ -205,14 +204,14 @@ namespace Text_Client_Server
         }
 
 
-        public byte[] CreateBuffer(out int[] BufferLenght, double answer, string err)
+        public byte[] CreateBuffer(out int[] BufferLenght, double answer, string err, int id)
         {
             NS = GetValue(NS);
-            NS = _Keys.NS + Convert.ToInt32(NS + 1);    //zwiekszenie numeru sekwencyjnego o 1
+            NS = _Keys.NS + Convert.ToInt32(NS + 1);    // zwiekszenie numeru sekwencyjnego o 1
             Arg1 = _Keys.Arg1 + answer;
             Time = _Keys.Time + "0:0:0";
             Arg2 = err;
-
+            ID = _Keys.ID + id;
             CreateCharbuff();
 
             byte[] Buffer = new byte[(OP.Length + ST.Length + NS.Length + ID.Length

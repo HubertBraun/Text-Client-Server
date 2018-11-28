@@ -12,7 +12,7 @@ namespace Text_Client_Server
             try
             {
                 byte[] buffer = new byte[1024];
-                int[] BufferLenght;
+                int[] BufferLenght = new int[4];
                 Console.WriteLine("Waiting");
                 string error;
                 while (true)
@@ -21,14 +21,23 @@ namespace Text_Client_Server
                     st = new Statement(BufferUtilites.BufferToString(buffer, server._ReceivedData));
                     Console.WriteLine("".PadLeft(50, '*'));
                     Console.WriteLine("Odebrane:");
-                    Console.WriteLine(st.ReadStatement());
-                    answer = server.Calculate(st.Encoding(),out error);
+                    Console.WriteLine(st.ReadStatement());  // wyswietlenie komunikatu
 
-                    buffer = st.CreateBuffer(out BufferLenght, answer, error);
+                    if (server.CheckIdRequest(st.Encoding()))   // sprawdzenie czy nie trzeba skonfigurowac klienta
+                    {
+                        server.ID++;    // zwiekszenie id o 1
+                        buffer = st.CreateBuffer(out BufferLenght, answer, Statement._ERR.NoError, server.ID);  // wyslanie id
+                    }
+                    else
+                    {
+                        answer = server.Calculate(st.Encoding(), out error);    // obliczenie zadania
+                        buffer = st.CreateBuffer(out BufferLenght, answer, error, server.ID);   // utworzenie odpowiedzi
+                    }
+
                     Console.WriteLine("Wyslane");
                     Console.WriteLine(st.ReadStatement());
                     Console.WriteLine("".PadLeft(50, '*'));
-                    server.Write(buffer, BufferLenght); // wyslanie echa
+                    server.Write(buffer, BufferLenght); // wyslanie odpowiedzi
                 }
             }
 

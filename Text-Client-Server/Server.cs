@@ -9,6 +9,8 @@ namespace Text_Client_Server
         public Server(int port) : base(port, IPAddress.Any)
         {
             _Socket.Bind(_IpEndPoint);
+            NS = 1;
+            ID = 0;
         }
 
         private int CalculateFactorial(int n)
@@ -19,16 +21,14 @@ namespace Text_Client_Server
 
         public double Calculate(string[] charbuff, out string error)
         {
-
-                double arg1 = Convert.ToDouble(charbuff[6] = Regex.Replace(charbuff[6], "[A-Z]\\S+: ", ""));
-                double toReturn = 0;
+            double arg1 = Convert.ToDouble(charbuff[6] = Statement.GetValue(charbuff[6])); // pierwszy argument
+            double toReturn = 0;
             error = Statement._ERR.NoError;
             try
             {
                 Console.WriteLine("".PadLeft(25, '*'));
-                if (charbuff[5] == Statement._FS.Yes)
+                if (charbuff[5] == Statement._FS.Yes) // silnia
                 {
-                    //TODO: if arg1<0 throw exception
                     try
                     {
                         if (arg1 < 0)
@@ -37,7 +37,7 @@ namespace Text_Client_Server
                     }
                     catch (Exception e)
                     {
-                        error = Statement._ERR.Factorial;
+                        error = Statement._ERR.Factorial; // ustawienie kodu bledu
                         throw e;
                     }
                 }
@@ -46,26 +46,26 @@ namespace Text_Client_Server
                     double arg2 = Convert.ToDouble(charbuff[7] = Regex.Replace(charbuff[7], "[A-Z]\\S+: ", ""));
                     switch (charbuff[0]) //operacja
                     {
-                        case Statement._OP.Sub:
+                        case Statement._OP.Sub: // odejmowanie
                             toReturn = checked(arg1 - arg2);
                             Console.WriteLine("{0} - {1} = {2}", arg1, arg2, toReturn);
                             break;
-                        case Statement._OP.Div:
+                        case Statement._OP.Div: // dzielenie
                             try
                             {
-                                if(arg2 == 0)
+                                if (arg2 == 0)
                                     throw new ArgumentException("Dzielenie przez zero");
                                 toReturn = checked(arg1 / arg2);
                                 Console.WriteLine("{0} / {1} = {2}", arg1, arg2, toReturn);
                             }
                             catch (Exception e)
                             {
-                                error = Statement._ERR.NotAllowed;
+                                error = Statement._ERR.NotAllowed; // ustawienie kodu bledu
                                 throw e;
                             }
 
                             break;
-                        case Statement._OP.Mul:
+                        case Statement._OP.Mul: // mnozenie
                             try
                             {
                                 toReturn = checked(arg1 * arg2);
@@ -75,21 +75,22 @@ namespace Text_Client_Server
                             }
                             catch (Exception e)
                             {
-                                error = Statement._ERR.OverFlow;
+                                error = Statement._ERR.OverFlow; // ustawienie kodu bledu
                                 throw e;
                             }
+
                             break;
-                        case Statement._OP.Exp:
+                        case Statement._OP.Exp: // potegowanie
                             try
                             {
                                 toReturn = Math.Pow(arg1, arg2);
-                                if(double.IsInfinity(toReturn))
+                                if (double.IsInfinity(toReturn))
                                     throw new ArgumentException("Przepelnienie!");
                                 Console.WriteLine("{0} ^ {1} = {2}", arg1, arg2, toReturn);
                             }
                             catch (Exception e)
                             {
-                                error = Statement._ERR.OverFlow;
+                                error = Statement._ERR.OverFlow; // ustawienie kodu bledu
                                 throw e;
                             }
 
@@ -100,16 +101,26 @@ namespace Text_Client_Server
                     }
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Console.WriteLine(e.Source + " Exception");
                 Console.WriteLine(e.Message);
-                toReturn = double.NaN;
+                toReturn = double.NaN; // przypisanie wyniku obliczen
             }
 
             Console.WriteLine("".PadLeft(25, '*'));
             return toReturn;
+        }
 
+        public bool CheckIdRequest(string[] charbuff)
+        {
+            if (Statement.GetValue(charbuff[3]) == "-1")    // umowny znak na brak id sesji
+            {
+                Console.WriteLine("Nowy klient!");
+                return true;
+            }
+            else
+                return false;
         }
     }
 }
