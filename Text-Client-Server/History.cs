@@ -31,8 +31,9 @@ namespace Text_Client_Server
             _memory[e] = data;
         }
 
-        public void DisplayMemoryByID(string id)
+        public List<string> DisplayMemoryByID(string id)
         {
+            List<string> toReturn = new List<string>();
             foreach (var c in _memory)
             {
                 if (c.Key.sessionID == id)
@@ -40,8 +41,11 @@ namespace Text_Client_Server
                     Console.WriteLine("Id obliczeń: " + c.Key.sessionID);
                     Console.WriteLine("Dane: ");
                     Console.WriteLine(c.Value);
+                    toReturn.Add(c.Value);
                 }
             }
+            return toReturn;
+
         }
 
         public void DisplayMemoryByCalc(string idCalc)

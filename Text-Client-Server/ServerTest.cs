@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Text_Client_Server
 {
@@ -15,9 +16,19 @@ namespace Text_Client_Server
                 int[] BufferLenght = new int[4];
                 Console.WriteLine("Waiting");
                 string error;
+                History history = new History();
+
                 while (true)
                 {
                     server.Read(ref buffer);
+                    history.AddNewStatement(server.ID.ToString(),server.CID.ToString(),BufferUtilites.BufferToString(buffer,buffer.Length));
+                    {
+                        List<string> temp = history.DisplayMemoryByID(server.ID.ToString());
+                        foreach (var str in temp)
+                        {
+                            Console.WriteLine(str);
+                        }
+                    }
                     st = new Statement(BufferUtilites.BufferToString(buffer, server._ReceivedData));
                     Console.WriteLine("".PadLeft(50, '*'));
                     Console.WriteLine("Odebrane:");

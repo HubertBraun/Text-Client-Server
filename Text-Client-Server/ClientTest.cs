@@ -16,6 +16,12 @@ namespace Text_Client_Server
                 return str;
             }
 
+            if (UserInput.ToLower() == "history")   //TODO: przetestowac
+            {
+                str[0] = "history";
+                return str;
+            }
+
             Match m = reg.Match(UserInput);
             GroupCollection groups = m.Groups;
             if (m.Groups.Count == 4)
@@ -57,7 +63,7 @@ namespace Text_Client_Server
                 {
                     Console.WriteLine("Proszę wpisać tekst");
                     string[] UserInput = ReadUserInput();
-                    st = new Statement(UserInput, client.NS, client.ID, 0);
+                    st = new Statement(UserInput, client.CID, client.ID, 0);
                     buffer = st.CreateBuffer(out BufferLenght);
                     client.Write(buffer, BufferLenght);
                     buffer = new byte[1024];

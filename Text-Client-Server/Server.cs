@@ -6,10 +6,10 @@ namespace Text_Client_Server
 {
     internal class Server : Host
     {
-        public Server(int port) : base(port, IPAddress.Any)
+        public Server(int port) : base(port, IPAddress.Parse("192.168.43.209"))
         {
             _Socket.Bind(_IpEndPoint);
-            NS = 1;
+            CID = 1;
             ID = 0;
         }
 

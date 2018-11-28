@@ -105,6 +105,11 @@ namespace Text_Client_Server
         {
         }
 
+        public static string GetTime()
+        {
+            return string.Format("{0:HH:MM:ss}", DateTime.UtcNow);
+        }
+
         public Statement(string buffer)
         {
             _charbuffer = buffer;
@@ -131,7 +136,10 @@ namespace Text_Client_Server
         {
             Arg1 += Arguments[0]; // pierwsza liczba
             FS = _FS.No; // ustawienie flagi silni na nie
-
+            if (Arguments[0] == "history")
+            {
+                return;
+            }
             switch (Arguments[1]) // rozpoznawanie operacji matematycznej
             {
                 case "*":
@@ -179,7 +187,7 @@ namespace Text_Client_Server
 
         private void CreateCharbuff()
         {
-            string[] str = new string[9];
+            string[] str = new string[10];
             str[0] = OP;
             str[1] = ST;
             str[2] = NS;
@@ -188,7 +196,8 @@ namespace Text_Client_Server
             str[5] = FS;
             str[6] = Arg1;
             str[7] = Arg2;
-            str[8] = Time;
+            str[8] = PH;
+            str[9] = Time;
             for (int i = 0; i < str.Length; i++)
             {
                 _charbuffer += str[i];
@@ -204,11 +213,12 @@ namespace Text_Client_Server
             Time = _Keys.Time + "0:0:0";
             Arg2 = err;
             ID = _Keys.ID + id;
+            PH = _PH.No;
             CreateCharbuff();
 
             byte[] Buffer = new byte[(OP.Length + ST.Length + NS.Length + ID.Length
                                       + CID.Length + FS.Length + Arg1.Length
-                                      + Arg2.Length + Time.Length + LK.Length + 1) * 2];
+                                      + Arg2.Length +PH.Length + Time.Length + LK.Length + 1) * 2];
 
             BufferLenght = new int[3];
             int lenght = 0;
@@ -233,6 +243,8 @@ namespace Text_Client_Server
             lenght += Arg2.ToBuffer().Length;
             BufferLenght[1] = lenght - BufferLenght[0];
             // trzeci blok danych
+            BufferCopy(PH.ToBuffer(), Buffer, lenght);
+            lenght += PH.ToBuffer().Length;
             BufferCopy(Time.ToBuffer(), Buffer, lenght);
             lenght += Time.ToBuffer().Length;
             BufferCopy((LK + "3").ToBuffer(), Buffer, lenght);
@@ -244,10 +256,10 @@ namespace Text_Client_Server
         public byte[] CreateBuffer(out int[] BufferLenght)
         {
             CreateCharbuff();
-
+            PH = _PH.No;
             byte[] Buffer = new byte[(OP.Length + ST.Length + NS.Length + ID.Length
                                       + CID.Length + FS.Length + Arg1.Length
-                                      + Arg2.Length + Time.Length + LK.Length + 1) * 2];
+                                      + Arg2.Length +PH.Length + Time.Length + LK.Length + 1) * 2];
 
             BufferLenght = new int[3];
             int lenght = 0;
@@ -272,6 +284,8 @@ namespace Text_Client_Server
             lenght += Arg2.ToBuffer().Length;
             BufferLenght[1] = lenght - BufferLenght[0];
             // trzeci blok danych
+            BufferCopy(PH.ToBuffer(), Buffer, lenght);
+            lenght += PH.ToBuffer().Length;
             BufferCopy(Time.ToBuffer(), Buffer, lenght);
             lenght += Time.ToBuffer().Length;
             BufferCopy((LK + "3").ToBuffer(), Buffer, lenght);
