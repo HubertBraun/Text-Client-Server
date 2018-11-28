@@ -10,47 +10,27 @@ namespace Text_Client_Server
             Server server = new Server(27015); //  tworzenie gniazda na danym porcie
             Statement st = new Statement();
             double answer = 0;
+            string charbuff;
             try
             {
                 byte[] buffer = new byte[1024];
-                int[] BufferLenght = new int[4];
+                List<byte[]> bufferList = new List<byte[]>();
                 Console.WriteLine("Waiting");
-                string error;
-                History history = new History();
-
                 while (true)
                 {
-                    server.Read(ref buffer);
-                    history.AddNewStatement(server.ID.ToString(),server.CID.ToString(),BufferUtilites.BufferToString(buffer,buffer.Length));
-                    {
-                        List<string> temp = history.DisplayMemoryByID(server.ID.ToString());
-                        foreach (var str in temp)
-                        {
-                            Console.WriteLine(str);
-                        }
-                    }
-                    st = new Statement(BufferUtilites.BufferToString(buffer, server._ReceivedData));
+                    server.Read(out charbuff);
                     Console.WriteLine("".PadLeft(50, '*'));
                     Console.WriteLine("Odebrane:");
-                    Console.WriteLine(st.ReadStatement());  // wyswietlenie komunikatu
-                    if (server.CheckIdRequest(st.Encoding()))   // sprawdzenie czy nie trzeba skonfigurowac klienta
-                    {
-                        server.ID++;    // zwiekszenie id o 1
-                        buffer = st.CreateBuffer(out BufferLenght, answer, Statement._ERR.NoError, server.ID);  // przyznanie id
-                    }
-                    else
-                    {
-                        answer = server.Calculate(st.Encoding(), out error);    // obliczenie zadania
-                        buffer = st.CreateBuffer(out BufferLenght, answer, error, server.ID);   // utworzenie odpowiedzi
-                        Console.WriteLine(BufferUtilites.BufferToString(buffer, buffer.Length));
-
-                    }
-
-                    Console.WriteLine("Wyslane");
-                    st = new Statement(BufferUtilites.BufferToString(buffer, buffer.Length));
+                    st = new Statement(charbuff);
                     Console.WriteLine(st.ReadStatement());
+                    st.CreateAnswer(server.Calculate(st.Encoding()));   // obliczanie zadania
+                    bufferList = st.CreateBuffer();     // podzielenie komunikatu na czesci
+                    st = new Statement(st.GetCharBuffer());
+                    Console.WriteLine("Wyslane");
                     Console.WriteLine("".PadLeft(50, '*'));
-                    server.Write(buffer, BufferLenght); // wyslanie odpowiedzi
+                    server.Write(bufferList); // wyslanie odpowiedzi
+                    Console.WriteLine(st.ReadStatement());
+
                 }
             }
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Text.RegularExpressions;
@@ -12,8 +13,8 @@ namespace Text_Client_Server
         protected int _port;
         public int _ReceivedData = 0;
         protected Socket _Socket;
-        public int ID; // identyfikator sesji
         public int CID; // identyfikator obliczen
+        public int ID; // identyfikator sesji
 
         public Host(int port, IPAddress IP)
         {
@@ -24,35 +25,36 @@ namespace Text_Client_Server
         }
 
 
-        public void Write(byte[] buffer, int[] BufferLenght)
+        public void Write(List<byte[]> bufferList)
         {
-            int Lenghts = 0;
-            for (int i = 0; i < BufferLenght.Length; i++)
+            foreach (var buffer in bufferList)
             {
-                _Socket.SendTo(buffer, Lenghts, BufferLenght[i], SocketFlags.None, _EndPoint);
-                Lenghts += BufferLenght[i];
+                string temp = BufferUtilites.BufferToString(buffer,buffer.Length);
+                temp += "\n";   // dla zwiekszenia czytelnosci dodaje znak nowej linii
+                _Socket.SendTo(temp.ToBuffer(), buffer.Length + 1, SocketFlags.None, _EndPoint);
             }
         }
 
-        public void Read(ref byte[] buffer)
+        public void Read(out string buffer)
         {
-            int lK = -1; // liczba komunikatow do odebrania
-            Regex reg = new Regex("LiczbaKomunikatow: ([0-9])"); // wyrazenie znajdujace liczbe komunikatow
-            string charbuff = null;
-            for (int i = 0; i != lK; i++)
+            byte[] tempbuff = new byte[1024];
+            string charbuff;
+            buffer = "";
+            int NS = -1; // liczba komunikatow do odebrania
+            Regex reg = new Regex("NumerSekwencyjny: ([0-9]*)"); // wyrazenie znajdujace liczbe komunikatow
+
+            while (NS != 0)
             {
-                _ReceivedData = _Socket.ReceiveFrom(buffer, ref _EndPoint);
-                charbuff += BufferUtilites.BufferToString(buffer, _ReceivedData);
+                _ReceivedData = _Socket.ReceiveFrom(tempbuff, ref _EndPoint);
+                charbuff = BufferUtilites.BufferToString(tempbuff, _ReceivedData - 1); // ostatni znak to znak nowej linii
+                buffer += charbuff; // dodanie do listy
                 Match m = reg.Match(charbuff);
                 GroupCollection groups = m.Groups;
                 if (m.Groups.Count == 2)
-                {
-                    lK = Convert.ToInt32(m.Groups[1].Value); // przypisanie liczby komunikatow
-                }
+                    NS = Convert.ToInt32(m.Groups[1].Value); // przypisanie numeru sekwencyjnego
             }
 
-            buffer = charbuff.ToBuffer();
-            _ReceivedData = buffer.Length;
+            _ReceivedData = buffer.Length * 2;
         }
     }
 }

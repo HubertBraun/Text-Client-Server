@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 namespace Text_Client_Server
@@ -16,7 +17,7 @@ namespace Text_Client_Server
                 return str;
             }
 
-            if (UserInput.ToLower() == "history")   //TODO: przetestowac
+            if (UserInput.ToLower() == "history") //TODO: przetestowac
             {
                 str[0] = "history";
                 return str;
@@ -49,26 +50,20 @@ namespace Text_Client_Server
             Client client = new Client(27015);
             try
             {
-                byte[] buffer = new byte[1024]; 
-                int[] BufferLenght;
-                Statement st = client.GetIDRequest();       // zadanie przydzielenia IDsesji
-                buffer = st.CreateBuffer(out BufferLenght); // wyslanie zadania
-                client.Write(buffer, BufferLenght);
-                client.Read(ref buffer);
-                st = new Statement(BufferUtilites.BufferToString(buffer, buffer.Length));
-                string[] temp = st.Encoding();
-                client.ID = Convert.ToInt32(Statement.GetValue(temp[3]));
-                Console.WriteLine("ID sesji: {0}", client.ID);
+                Statement st = new Statement(); // zadanie przydzielenia IDsesji
+                List<byte[]> bufferList = new List<byte[]>();
+                string charbuff;
                 while (true)
                 {
                     Console.WriteLine("Proszę wpisać tekst");
                     string[] UserInput = ReadUserInput();
-                    st = new Statement(UserInput, client.CID, client.ID, 0);
-                    buffer = st.CreateBuffer(out BufferLenght);
-                    client.Write(buffer, BufferLenght);
-                    buffer = new byte[1024];
-                    client.Read(ref buffer);
-                    Console.WriteLine("Server: {0}", client.ReadAnswer(buffer));
+                    st = new Statement(UserInput, client.ID, client.CID);   //utworzenie nowego komunikatu
+                    bufferList = st.CreateBuffer(); 
+                    Console.WriteLine(st.ReadStatement()); 
+                    client.Write(bufferList);    //wyslanie listy  komunikatow
+
+                    client.Read(out charbuff);
+                    Console.WriteLine("Server: {0}", client.ReadAnswer(charbuff));
                 }
             }
             catch (Exception e)

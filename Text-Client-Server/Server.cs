@@ -6,7 +6,7 @@ namespace Text_Client_Server
 {
     internal class Server : Host
     {
-        public Server(int port) : base(port, IPAddress.Parse("192.168.43.209"))
+        public Server(int port) : base(port, IPAddress.Any)
         {
             _Socket.Bind(_IpEndPoint);
             CID = 1;
@@ -19,102 +19,98 @@ namespace Text_Client_Server
             else return checked(n * CalculateFactorial(n - 1));
         }
 
-        public double Calculate(string[] charbuff, out string error)
+        public string Calculate(string[] encoding)
         {
-            double arg1 = Convert.ToDouble(charbuff[6] = Statement.GetValue(charbuff[6])); // pierwszy argument
-            double toReturn = 0;
-            error = Statement._ERR.NoError;
+            string OP = "", answer = "";
+            double Arg1 = 0, Arg2 = 0;
+            foreach (var str in encoding)
+            {
+                switch (Statement.GetKey(str))  //sprawdzenie operacji oraz argumentow
+                {
+                    case Statement._Keys.OP:
+                        OP = Statement.GetValue(str);
+                        break;
+                    case Statement._Keys.Arg1:
+                        Arg1 = Convert.ToDouble(Statement.GetValue(str));
+                        break;
+                    case Statement._Keys.Arg2:
+                        Arg2 = Convert.ToDouble(Statement.GetValue(str));
+                        break;
+                }
+            }
+
             try
             {
                 Console.WriteLine("".PadLeft(25, '*'));
-                if (charbuff[5] == Statement._FS.Yes) // silnia
+
+                switch (OP)
                 {
-                    try
-                    {
-                        if (arg1 < 0)
+                    case Statement._OP.Div:
+                        if (Arg2 == 0)
+                        {
+                            answer = Statement._ERR.NotAllowed;
+                            throw new ArgumentException("Dzielenie przez zero");
+                        }
+
+                        answer = (Arg1 / Arg2).ToString();
+                        Console.WriteLine("{0} / {1} = {2}", Arg1, Arg1, answer);
+                        break;
+
+                    case Statement._OP.Mul:
+                        if (double.IsInfinity(Arg1 * Arg2))
+                        {
+                            answer = Statement._ERR.OverFlow;
+                            throw new ArgumentException("Przepelnienie!");
+                        }
+
+                        answer = checked(Arg1 * Arg2).ToString();
+                        Console.WriteLine("{0} * {1} = {2}", Arg1, Arg1, answer);
+                        break;
+
+                    case Statement._OP.Fac:
+
+                        if (Arg1 >= 0)
+                            answer = CalculateFactorial(Convert.ToInt32(Arg1)).ToString();
+                        else
+                        {
+                            answer = Statement._ERR.Factorial;
                             throw new ArgumentException("Ujemny argument");
-                        toReturn = CalculateFactorial(Convert.ToInt32(arg1));
-                    }
-                    catch (Exception e)
-                    {
-                        error = Statement._ERR.Factorial; // ustawienie kodu bledu
-                        throw e;
-                    }
-                }
-                else
-                {
-                    double arg2 = Convert.ToDouble(charbuff[7] = Regex.Replace(charbuff[7], "[A-Z]\\S+: ", ""));
-                    switch (charbuff[0]) //operacja
-                    {
-                        case Statement._OP.Sub: // odejmowanie
-                            toReturn = checked(arg1 - arg2);
-                            Console.WriteLine("{0} - {1} = {2}", arg1, arg2, toReturn);
-                            break;
-                        case Statement._OP.Div: // dzielenie
-                            try
-                            {
-                                if (arg2 == 0)
-                                    throw new ArgumentException("Dzielenie przez zero");
-                                toReturn = checked(arg1 / arg2);
-                                Console.WriteLine("{0} / {1} = {2}", arg1, arg2, toReturn);
-                            }
-                            catch (Exception e)
-                            {
-                                error = Statement._ERR.NotAllowed; // ustawienie kodu bledu
-                                throw e;
-                            }
+                        }
 
-                            break;
-                        case Statement._OP.Mul: // mnozenie
-                            try
-                            {
-                                toReturn = checked(arg1 * arg2);
-                                if (double.IsInfinity(toReturn))
-                                    throw new ArgumentException("Przepelnienie!");
-                                Console.WriteLine("{0} * {1} = {2}", arg1, arg2, toReturn);
-                            }
-                            catch (Exception e)
-                            {
-                                error = Statement._ERR.OverFlow; // ustawienie kodu bledu
-                                throw e;
-                            }
+                        Console.WriteLine("{0}! = {1}", Arg1, answer);
+                        break;
 
-                            break;
-                        case Statement._OP.Exp: // potegowanie
-                            try
-                            {
-                                toReturn = Math.Pow(arg1, arg2);
-                                if (double.IsInfinity(toReturn))
-                                    throw new ArgumentException("Przepelnienie!");
-                                Console.WriteLine("{0} ^ {1} = {2}", arg1, arg2, toReturn);
-                            }
-                            catch (Exception e)
-                            {
-                                error = Statement._ERR.OverFlow; // ustawienie kodu bledu
-                                throw e;
-                            }
+                    case Statement._OP.Exp:
+                        answer = Math.Pow(Arg1, Arg2).ToString();
+                        if (double.IsInfinity(Math.Pow(Arg1, Arg2)))
+                        {
+                            answer = Statement._ERR.OverFlow;
+                            throw new ArgumentException("Przepelnienie!");
+                        }
 
-                            break;
-                        default:
-                            throw new ArgumentException("Nierozpoznana operacja");
-                            break;
-                    }
+                        Console.WriteLine("{0} ^ {1} = {2}", Arg1, Arg1, answer);
+                        break;
+
+                    case Statement._OP.Sub:
+                        answer = (Arg1 - Arg2).ToString();
+                        Console.WriteLine("{0} - {1} = {2}", Arg1, Arg1, answer);
+                        break;
                 }
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Source + " Exception");
                 Console.WriteLine(e.Message);
-                toReturn = double.NaN; // przypisanie wyniku obliczen
             }
 
             Console.WriteLine("".PadLeft(25, '*'));
-            return toReturn;
+            answer = answer.ToLower();  //w przypadku notacji wykladniczej
+            return answer;
         }
 
         public bool CheckIdRequest(string[] charbuff)
         {
-            if (Statement.GetValue(charbuff[3]) == "-1")    // umowny znak na brak id sesji
+            if (Statement.GetValue(charbuff[3]) == "-1") // umowny znak na brak id sesji
             {
                 Console.WriteLine("Nowy klient!");
                 return true;

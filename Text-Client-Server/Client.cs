@@ -9,15 +9,19 @@ namespace Text_Client_Server
         {
         }
 
-        public string ReadAnswer(byte[] buffer)
+        public string ReadAnswer(string charbuff)
         {
-            string[] str = Statement.Encoding(BufferUtilites.BufferToString(buffer, buffer.Length));
+            string[] encoding = Statement.Encoding(charbuff);
+            foreach (var str in encoding)
+            {
+                switch (Statement.GetKey(str))
+                {
+                    case Statement._Keys.Arg1:
+                        return Statement.GetValue(str);
+                }
+            }
 
-            string temp = Statement.GetValue(str[6]);
-                if (Double.TryParse(temp, out double d))
-                    return temp;
-            else
-                return Statement.GetValue(str[7]);
+            return "Brak odpowiedzi";
         }
 
         public Statement GetIDRequest()
@@ -25,7 +29,7 @@ namespace Text_Client_Server
             string[] arguments = new string[3];
             arguments[0] = arguments[2] = "0";
             arguments[1] = "-";
-            Statement temp = new Statement(arguments, 0, -1, -1);
+            Statement temp = new Statement(arguments, -1, -1);
             return temp;
         }
     }
