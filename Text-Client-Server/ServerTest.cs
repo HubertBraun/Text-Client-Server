@@ -22,19 +22,21 @@ namespace Text_Client_Server
                     Console.WriteLine("".PadLeft(50, '*'));
                     Console.WriteLine("Odebrane:");
                     Console.WriteLine(st.ReadStatement());  // wyswietlenie komunikatu
-
                     if (server.CheckIdRequest(st.Encoding()))   // sprawdzenie czy nie trzeba skonfigurowac klienta
                     {
                         server.ID++;    // zwiekszenie id o 1
-                        buffer = st.CreateBuffer(out BufferLenght, answer, Statement._ERR.NoError, server.ID);  // wyslanie id
+                        buffer = st.CreateBuffer(out BufferLenght, answer, Statement._ERR.NoError, server.ID);  // przyznanie id
                     }
                     else
                     {
                         answer = server.Calculate(st.Encoding(), out error);    // obliczenie zadania
                         buffer = st.CreateBuffer(out BufferLenght, answer, error, server.ID);   // utworzenie odpowiedzi
+                        Console.WriteLine(BufferUtilites.BufferToString(buffer, buffer.Length));
+
                     }
 
                     Console.WriteLine("Wyslane");
+                    st = new Statement(BufferUtilites.BufferToString(buffer, buffer.Length));
                     Console.WriteLine(st.ReadStatement());
                     Console.WriteLine("".PadLeft(50, '*'));
                     server.Write(buffer, BufferLenght); // wyslanie odpowiedzi

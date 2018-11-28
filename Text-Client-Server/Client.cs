@@ -12,6 +12,7 @@ namespace Text_Client_Server
         public string ReadAnswer(byte[] buffer)
         {
             string[] str = Statement.Encoding(BufferUtilites.BufferToString(buffer, buffer.Length));
+
             string temp = Statement.GetValue(str[6]);
                 if (Double.TryParse(temp, out double d))
                     return temp;

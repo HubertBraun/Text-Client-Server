@@ -9,35 +9,17 @@ using System.Threading.Tasks;
 /*
  *  Struktura komunikatu:
  *
- *  KOMUNIKATY KLIENT -> SERWER
+ *  KOMUNIKAT KLIENT -> SERWER
  *
- *  Standardowy komunikat
- *  Operacja: OP         Status: ST             NumerSekwencyjny: NS     Czas: sek:ms:ns    // pierwszy komunikat
- *  IdSesji: ID          IdObliczen: CID        FlagaSilni: FS           Czas: sek:ms:ns    // drugi komunikat
- *  Liczba1: ARG1        Liczba2: ARG2          LiczbaKomunikatow: LK    Czas: sek:ms:ns    // trzeci komunikat
+ *  Operacja: OP            Status: ST             NumerSekwencyjny: NS      IdSesji: ID         // pierwszy komunikat
+ *  IdObliczen: CID         FlagaSilni: FS         Liczba1: ARG1             Liczba2: ARG2       // drugi komunikat
+ *  LiczbaKomunikatow: LK   Historia: PS           Czas: sek:ms:ns                               // trzeci komunikat
  *
- *  Prosba o podanie historii
- *  Operacja: OP         Status: ST             NumerSekwencyjny: NS     Czas: sek:ms:ns    // pierwszy komunikat
- *  IdSesji: ID          IdObliczen: CID        Historia: HS             Czas: sek:ms:ns    // drugi komunikat
- *  
+ * KOMUNIKAT SERWER -> KLIENT
  *
- * KOMUNIKATY SERWER -> KLIENT
- *
- * Standardowy komunikat
- * Operacja: OP          Status: ST             NumerSekwencyjny: NS     Czas: sek:ms:ns    // pierwszy komunikat
- * IdSesji: ID           IdObliczen: CID        FlagaSilni: FS           Czas: sek:ms:ns    // drugi komunikat
- * Liczba1: ARG1         Blad: B                                         Czas: sek:ms:ns    // trzeci komunikat
- *
- * Wyslanie historii  
- * Standardowy komunikat
- * Operacja: OP          Status: ST             NumerSekwencyjny: NS     Czas: sek:ms:ns    // pierwszy komunikat
- * IdSesji: ID           IdObliczen: CID        FlagaSilni: FS           Czas: sek:ms:ns    // drugi komunikat
- * Liczba1: ARG1         Liczba2: ARG2          Liczba3: ARG3            Czas: sek:ms:ns    // trzeci komunikat
- *
- * Operacja z bledem
- * Operacja: OP          Status: ST             NumerSekwencyjny: NS     Czas: sek:ms:ns    // pierwszy komunikat
- * IdSesji: ID           IdObliczen: CID        FlagaSilni: FS           Czas: sek:ms:ns    // drugi komunikat
- * Liczba1: ARG1         Liczba2: ARG2          Blad: B                  Czas: sek:ms:ns    // trzeci komunikat
+ *  Operacja: OP            Status: ST             NumerSekwencyjny: NS      IdSesji: ID         // pierwszy komunikat
+ *  IdObliczen: CID         FlagaSilni: FS         Liczba1: ARG1             Liczba2/Blad: ARG2  // drugi komunikat
+ *  LiczbaKomunikatow: LK   Historia: PS           ARG3: ARG3                Czas: sek:ms:ns     // trzeci komunikat
  *
  */
 
@@ -57,6 +39,7 @@ namespace Text_Client_Server
             ID = "IDSesji: ",
             CID = "IDObliczen: ",
             FS = "FlagaSilni: ",
+            PH = "Historia: ",
             LK = "LiczbaKomunikatow: "; // przyjmuje wartosci od 1-9
 
         #region structs
@@ -66,6 +49,7 @@ namespace Text_Client_Server
             internal const string Time = "Czas: ";
             internal const string Arg1 = "Arg1: ";
             internal const string Arg2 = "Arg2: ";
+            internal const string Arg3 = "Arg3: ";
             internal const string OP = "Operacja: ";
             internal const string ST = "Status: ";
             internal const string NS = "NumerSekwencyjny: ";
@@ -73,6 +57,7 @@ namespace Text_Client_Server
             internal const string CID = "IDObliczen: ";
             internal const string FS = "FlagaSilni: ";
             internal const string ERR = "Blad: ";
+            internal const string PH = "Historia: ";
             internal const string LK = "LiczbaKomunikatow: "; // przyjmuje wartosci od 1-9
 
         }
@@ -107,6 +92,13 @@ namespace Text_Client_Server
             internal const string Other = "Blad: nierozpoznanyblad";
         }
 
+        internal struct _PH // pole historii
+        {
+            internal const string No = "Historia: pomin";
+            internal const string ID = "Historia: przezidsesji";
+            internal const string CID = "Historia: przezidobliczen";
+        }
+
         #endregion
 
         public Statement()
@@ -119,7 +111,6 @@ namespace Text_Client_Server
             string[] temp = Encoding();
             for (int i = 0; i < temp.Length; i++)
             {
-                //temp[i] = Regex.Replace(temp[i], "[A-Z]\\S+: ", "");
                 temp[i] = GetValue(temp[i]);
             }
 
@@ -131,6 +122,7 @@ namespace Text_Client_Server
             FS += temp[5]; // flaga silni
             Arg1 += temp[6]; // argument1
             Arg2 += temp[7]; // argument2
+            //History += temp[7]; // pole historii  //TODO
             Time += temp[8]; // czas
         }
 
@@ -208,7 +200,7 @@ namespace Text_Client_Server
         {
             NS = GetValue(NS);
             NS = _Keys.NS + Convert.ToInt32(NS + 1);    // zwiekszenie numeru sekwencyjnego o 1
-            Arg1 = _Keys.Arg1 + answer;
+            Arg1 = _Keys.Arg1 + answer.ToString().ToLower();    // zamiana w przypadku notacji wykladniczej
             Time = _Keys.Time + "0:0:0";
             Arg2 = err;
             ID = _Keys.ID + id;
@@ -246,7 +238,6 @@ namespace Text_Client_Server
             BufferCopy((LK + "3").ToBuffer(), Buffer, lenght);
             lenght += (LK + "3").ToBuffer().Length;
             BufferLenght[2] = lenght - BufferLenght[0] - BufferLenght[1];
-
             return Buffer; // zwraca bufor oraz dlugosc poszczegolnych sektorow
         }
 
@@ -312,7 +303,7 @@ namespace Text_Client_Server
         }
         public static string[] Encoding(string charbuffer)
         {
-            Regex reg = new Regex("([A-Z]\\S+): ([a-z]*-?[0-@]*,?[0-@]*)");
+            Regex reg = new Regex("([A-Z]\\S+): ([a-z]*-?[0-@]*[,]?[0-@]*[e]?[-|+]?[0-@]*)");
             MatchCollection matches = reg.Matches(charbuffer);
             string[] str = new string[matches.Count];
             for (int i = 0; i < matches.Count; i++) // wpisanie wyrazen do lancuchow znakow
