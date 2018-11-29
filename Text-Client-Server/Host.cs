@@ -13,7 +13,7 @@ namespace Text_Client_Server
         protected int _port;
         public int _ReceivedData = 0;
         protected Socket _Socket;
-        public int CID = 0; // identyfikator obliczen
+        public int CID = -1; // identyfikator obliczen
         public int ID = -1; // identyfikator sesji
 
         public Host(int port, IPAddress IP)

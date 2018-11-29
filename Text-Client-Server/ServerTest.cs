@@ -13,7 +13,7 @@ namespace Text_Client_Server
                 Statement st = new Statement();
                 string charbuff;
                 List<byte[]> bufferList;
-
+                Console.WriteLine("Waiting");
                 server.Read(out charbuff); // oczekiwanie na IDSesji
                 st = new Statement(charbuff);
                 Console.WriteLine(st.ReadStatement());
@@ -23,7 +23,6 @@ namespace Text_Client_Server
                 try
                 {
                     byte[] buffer = new byte[1024];
-                    Console.WriteLine("Waiting");
                     while (true)
                     {
                         server.Read(out charbuff);
@@ -36,7 +35,7 @@ namespace Text_Client_Server
                             Console.WriteLine("Klient sie rozlaczyl");
                             break;
                         }
-
+                            
 
                         st.CreateAnswer(server.Calculate(st.Encoding())); // obliczanie zadania
                         bufferList = st.CreateBuffer(); // podzielenie komunikatu na czesci

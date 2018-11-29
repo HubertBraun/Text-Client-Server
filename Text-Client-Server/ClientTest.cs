@@ -70,12 +70,13 @@ namespace Text_Client_Server
                 client.ChangeID(st.Encoding());
                 Console.WriteLine("Przydzielono {0} numer sesji", client.ID);
             }
-            catch (Exception e)
+            catch (Exception e) 
             {
                 Console.WriteLine(e.Source + " Exception");
                 Console.WriteLine(e.Message);
             }
-            while (true)
+
+            while (true)    // petla glowna
                 {
                 try { 
                     Console.WriteLine("Proszę wpisać dzialanie matematyczne / historiaID: / historiaCID: ");
@@ -87,7 +88,7 @@ namespace Text_Client_Server
                         client.Write(bufferList); //wyslanie listy  komunikatow
                         break;
                     }
-
+                    client.CID++;
                     st = new Statement(UserInput, client.ID, client.CID); //utworzenie nowego komunikatu
                     bufferList = st.CreateBuffer();
                     Console.WriteLine(st.ReadStatement());

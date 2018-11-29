@@ -12,11 +12,19 @@ namespace Text_Client_Server
             _Socket.Bind(_IpEndPoint);
         }
 
-        private int CalculateFactorial(int n)
+        private Int64 CalculateFactorial(double n)
         {
-            if (n <= 1) return 1;
-            else return checked(n * CalculateFactorial(n - 1));
+            if (n == 0)
+                return 1;
+            Int64 result = 1;
+            for (int i = 1; i < n; i++)
+            {
+                result = checked(result * i);
+            }
+
+            return result;
         }
+
 
         public string Calculate(string[] encoding)
         {
@@ -24,7 +32,7 @@ namespace Text_Client_Server
             double Arg1 = 0, Arg2 = 0;
             foreach (var str in encoding)
             {
-                switch (Statement.GetKey(str))  //sprawdzenie operacji oraz argumentow
+                switch (Statement.GetKey(str)) //sprawdzenie operacji oraz argumentow
                 {
                     case Statement._Keys.OP:
                         OP = Statement.GetValue(str);
@@ -69,7 +77,17 @@ namespace Text_Client_Server
                     case Statement._OP.Fac:
 
                         if (Arg1 >= 0)
-                            answer = CalculateFactorial(Convert.ToInt32(Arg1)).ToString();
+                        {
+                            try
+                            {
+                                answer = CalculateFactorial(Convert.ToInt32(Arg1)).ToString();
+                            }
+                            catch (Exception e)
+                            {
+                                answer = Statement._ERR.OverFlow;
+                                throw new ArgumentException("Przepelnienie!");
+                            }
+                        }
                         else
                         {
                             answer = Statement._ERR.Factorial;
@@ -103,7 +121,7 @@ namespace Text_Client_Server
             }
 
             Console.WriteLine("".PadLeft(25, '*'));
-            answer = answer.ToLower();  //w przypadku notacji wykladniczej
+            answer = answer.ToLower(); //w przypadku notacji wykladniczej
             return answer;
         }
 
@@ -112,20 +130,22 @@ namespace Text_Client_Server
             List<byte[]> toReturn = new List<byte[]>();
             foreach (var str in encoding)
             {
-                switch (Statement.GetKey(str))  // sprawdzenie czy wyslano zapytanie o przydzial ID sesji
+                switch (Statement.GetKey(str)) // sprawdzenie czy wyslano zapytanie o przydzial ID sesji
                 {
                     case Statement._Keys.ST:
                         if (Statement.GetValue(str) == Statement._ST.Request)
                         {
-                         ID++;
-                         Statement st = new Statement(ID);
-                         toReturn = st.CreateBuffer();
+                            ID++;
+                            Statement st = new Statement(ID);
+                            toReturn = st.CreateBuffer();
                         }
                         else
                             throw new ArgumentNullException("Nieprawidlowe zadanie ID");
+
                         break;
                 }
             }
+
             return toReturn;
         }
 
@@ -133,16 +153,18 @@ namespace Text_Client_Server
         {
             foreach (var str in encoding)
             {
-                switch (Statement.GetKey(str))  // sprawdzenie czy klient chce sie rozlaczyc
+                switch (Statement.GetKey(str)) // sprawdzenie czy klient chce sie rozlaczyc
                 {
                     case Statement._Keys.ST:
                         if (Statement.GetValue(str) == Statement._ST.Exit)
                         {
                             return true;
                         }
+
                         break;
                 }
             }
+
             return false;
         }
     }
