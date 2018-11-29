@@ -31,6 +31,7 @@ namespace Text_Client_Server
             _memory[e] = data;
         }
 
+
         public List<string> DisplayMemoryByID(string id)
         {
             List<string> toReturn = new List<string>();
@@ -38,9 +39,6 @@ namespace Text_Client_Server
             {
                 if (c.Key.sessionID == id)
                 {
-                    Console.WriteLine("Id obliczeń: " + c.Key.sessionID);
-                    Console.WriteLine("Dane: ");
-                    Console.WriteLine(c.Value);
                     toReturn.Add(c.Value);
                 }
             }
@@ -48,17 +46,18 @@ namespace Text_Client_Server
 
         }
 
-        public void DisplayMemoryByCalc(string idCalc)
+        public List<string> DisplayMemoryByCalc(string idCalc)
         {
+            List<string> toReturn = new List<string>();
             foreach (var c in _memory)
             {
                 if (c.Key.CalcID == idCalc)
                 {
-                    Console.WriteLine("Id obliczeń: " + c.Key.CalcID);
-                    Console.WriteLine("Dane: ");
-                    Console.WriteLine(c.Value);
+                    toReturn.Add(c.Value);
                 }
             }
+
+            return toReturn;
         }
     }
 }

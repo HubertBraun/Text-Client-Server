@@ -39,7 +39,8 @@ namespace Text_Client_Server
             NS = "",
             ID = "",
             CID = "",
-            PH = "";
+            PHID = "",
+            PHCID = "";
 
         public Statement()
         {
@@ -58,7 +59,9 @@ namespace Text_Client_Server
             internal const string NS = "NumerSekwencyjny: ";
             internal const string ID = "IDSesji: ";
             internal const string CID = "IDObliczen: ";
-            internal const string PH = "Historia: ";
+            internal const string PHID = "HistoriaID: ";
+            internal const string PHCID = "HistoriaCID: ";
+
         }
 
         internal struct _OP // pole operacji
@@ -73,7 +76,9 @@ namespace Text_Client_Server
         internal struct _ST // pole statusu
         {
             internal const string Autorized = "autoryzacja";
-            internal const string Error = "nierozpoznanyblad";
+            internal const string Error = "blad";
+            internal const string Request = "ustalanieidsesji";
+            internal const string Exit = "konczeniepolaczenia";
             internal const string ID = "nieprawildowyidentyfikator";
             internal const string CID = "nieprawildowyidentyfikatorobliczen";
         }
@@ -87,11 +92,6 @@ namespace Text_Client_Server
             internal const string Other = "nierozpoznanyblad";
         }
 
-        internal struct _PH // pole historii
-        {
-            internal const string ID = "przezidsesji";
-            internal const string CID = "przezidobliczen";
-        }
 
         #endregion
 
@@ -121,8 +121,11 @@ namespace Text_Client_Server
                     case _Keys.CID:
                         CID = str;
                         break;
-                    case _Keys.PH:
-                        PH = str;
+                    case _Keys.PHID:
+                        PHID = str;
+                        break;
+                    case _Keys.PHCID:
+                        PHCID = str;
                         break;
                     case _Keys.Arg1:
                         Arg1 = str;
@@ -136,10 +139,25 @@ namespace Text_Client_Server
                 }
             }
 
-            _charbuffer = ID + NS + Time + OP + ST + CID + PH + Arg1 + Arg2 + Arg3;
+            _charbuffer = ID + NS + Time + OP + ST + CID + PHID + PHCID + Arg1 + Arg2 + Arg3;
         }
 
+        public Statement(int id) // zadanie przydzielenia id
+        {
+            ID = id.ToString();
+            ST = _ST.Request;
+            Time += GetTime();
+        }
 
+        public Statement(int id, string str) // zadanie przydzielenia id
+        {
+            if (str == "exit")
+            {
+                ID = id.ToString();
+                ST = _ST.Exit;
+                Time += GetTime();
+            }
+        }
         public Statement(string[] Arguments, int id, int cid) // argumenty, numer sekwencyjny, id sesji, id obliczen
         {
             Arg1 += Arguments[0]; // pierwsza liczba
@@ -178,12 +196,12 @@ namespace Text_Client_Server
             ID += id.ToString(); // przypisanie identyfikatora sesji
             CID += cid.ToString(); // przypisanie identyfikatora obliczen
             ST = _ST.Autorized; // do testow
-            Time += GetTime().Replace(' ', '\0');
+            Time += GetTime();
         }
 
         public static string GetTime()
         {
-            return Regex.Replace(DateTime.UtcNow.ToString(), " ", "@");
+            return DateTime.UtcNow.ToString();
         }
 
         public void CreateAnswer(string arg1)
@@ -221,7 +239,7 @@ namespace Text_Client_Server
         private int UniteData(string data, ref byte[] buffer)
         {
             byte[] header = CreateHeader();
-            if (data != "")
+            if (GetValue(data) != "")
             {
                 buffer = new byte[header.Length + data.Length];
                 BufferCopy(header, buffer, 0);
@@ -234,11 +252,15 @@ namespace Text_Client_Server
 
         public List<byte[]> CreateBuffer()
         {
-            if (GetValue(OP) == _OP.Fac || Arg2 == "")
+            if (GetValue(ST) == _ST.Request || GetValue(ST) == _ST.Exit)    // ustalanie IDsesji lub konczenie polaczenia
+            {
+                NS = "1";
+            }
+            else if (GetValue(OP) == _OP.Fac || Arg2 == "")  //silnia
             {
                 NS = "4";
             }
-            else
+            else    // zwykle dzialanie
             {
                 NS = "5";
             }
@@ -250,14 +272,14 @@ namespace Text_Client_Server
             List<int> lenghts = new List<int>();
 
             int lenght = UniteData(_Keys.OP + OP, ref tempbuff);
-            if (lenght != _Keys.OP.Length)
+            if (lenght != 0)
             {
                 lenghts.Add(lenght);
                 bufferlist.Add(tempbuff);
             }
 
             lenght = UniteData(_Keys.ST + ST, ref tempbuff);
-            if (lenght != _Keys.ST.Length)
+            if (lenght != 0)
             {
                 lenghts.Add(lenght);
                 bufferlist.Add(tempbuff);
@@ -268,7 +290,7 @@ namespace Text_Client_Server
             _charbuffer += _Keys.OP + OP;
             _charbuffer += _Keys.Time + Time;
             lenght = UniteData(_Keys.CID + CID, ref tempbuff);
-            if (lenght != _Keys.CID.Length)
+            if (lenght != 0)
             {
                 lenghts.Add(lenght);
                 bufferlist.Add(tempbuff);
@@ -276,17 +298,26 @@ namespace Text_Client_Server
 
             }
 
-            lenght = UniteData(_Keys.PH + PH, ref tempbuff);
-            if (lenght != _Keys.PH.Length)
+            lenght = UniteData(_Keys.PHID + PHID, ref tempbuff);
+            if (lenght != 0)
             {
                 lenghts.Add(lenght);
                 bufferlist.Add(tempbuff);
-                _charbuffer += _Keys.PH + PH;
+                _charbuffer += _Keys.PHID + PHID;
+
+            }
+
+            lenght = UniteData(_Keys.PHCID + PHCID, ref tempbuff);
+            if (lenght != 0)
+            {
+                lenghts.Add(lenght);
+                bufferlist.Add(tempbuff);
+                _charbuffer += _Keys.PHCID + PHCID;
 
             }
 
             lenght = UniteData(_Keys.Arg1 + Arg1, ref tempbuff);
-            if (lenght != _Keys.Arg1.Length)
+            if (lenght != 0)
             {
                 lenghts.Add(lenght);
                 bufferlist.Add(tempbuff);
@@ -295,7 +326,7 @@ namespace Text_Client_Server
             }
 
             lenght = UniteData(_Keys.Arg2 + Arg2, ref tempbuff);
-            if (lenght != _Keys.Arg2.Length)
+            if (lenght != 0)
             {
                 lenghts.Add(lenght);
                 bufferlist.Add(tempbuff);
@@ -304,7 +335,7 @@ namespace Text_Client_Server
             }
 
             lenght = UniteData(_Keys.Arg3 + Arg3, ref tempbuff);
-            if (lenght != _Keys.Arg3.Length)
+            if (lenght != 0)
             {
                 lenghts.Add(lenght);
                 bufferlist.Add(tempbuff);
@@ -351,7 +382,7 @@ namespace Text_Client_Server
         public static string[] Encoding(string charbuffer)
         {
 
-            Regex reg = new Regex("([A-Z]\\S+): ([a-z]*-?[0-@]*[,]?[0-@]*[e]?[-|+]?[0-@]*)");
+            Regex reg = new Regex("([A-Z]\\S+): (((?![A-Z]).)*)");
             MatchCollection matches = reg.Matches(charbuffer);
             string[] str = new string[matches.Count];
             for (int i = 0; i < matches.Count; i++) // wpisanie wyrazen do lancuchow znakow

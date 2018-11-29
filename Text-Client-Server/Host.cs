@@ -13,8 +13,8 @@ namespace Text_Client_Server
         protected int _port;
         public int _ReceivedData = 0;
         protected Socket _Socket;
-        public int CID; // identyfikator obliczen
-        public int ID; // identyfikator sesji
+        public int CID = 0; // identyfikator obliczen
+        public int ID = -1; // identyfikator sesji
 
         public Host(int port, IPAddress IP)
         {
@@ -43,7 +43,7 @@ namespace Text_Client_Server
             int NS = -1; // liczba komunikatow do odebrania
             Regex reg = new Regex("NumerSekwencyjny: ([0-9]*)"); // wyrazenie znajdujace liczbe komunikatow
 
-            while (NS != 0)
+            while (NS != 1) // numer ostaniego komunikatu
             {
                 _ReceivedData = _Socket.ReceiveFrom(tempbuff, ref _EndPoint);
                 charbuff = BufferUtilites.BufferToString(tempbuff, _ReceivedData - 1); // ostatni znak to znak nowej linii

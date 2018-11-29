@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 
 namespace Text_Client_Server
@@ -24,13 +25,27 @@ namespace Text_Client_Server
             return "Brak odpowiedzi";
         }
 
-        public Statement GetIDRequest()
+        public List<byte[]> GetIDRequest()
         {
-            string[] arguments = new string[3];
-            arguments[0] = arguments[2] = "0";
-            arguments[1] = "-";
-            Statement temp = new Statement(arguments, -1, -1);
-            return temp;
+            Statement st = new Statement(ID);
+            List<byte[]> toReturn = st.CreateBuffer();
+            return toReturn;
+        }
+
+        public void ChangeID(string[] encoding)
+        {
+            List<byte[]> toReturn = new List<byte[]>();
+            foreach (var str in encoding)
+            {
+                switch (Statement.GetKey(str))  // sprawdzenie czy wyslano zapytanie o przydzial ID sesji
+                {
+                    case Statement._Keys.ID:
+                        ID = Convert.ToInt32(Statement.GetValue(str));
+                        break;
+                    default:
+                        break;
+                }
+            }
         }
     }
 }

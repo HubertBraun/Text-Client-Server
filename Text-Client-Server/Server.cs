@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Text.RegularExpressions;
 
@@ -9,8 +10,6 @@ namespace Text_Client_Server
         public Server(int port) : base(port, IPAddress.Any)
         {
             _Socket.Bind(_IpEndPoint);
-            CID = 1;
-            ID = 0;
         }
 
         private int CalculateFactorial(int n)
@@ -108,15 +107,43 @@ namespace Text_Client_Server
             return answer;
         }
 
-        public bool CheckIdRequest(string[] charbuff)
+        public List<byte[]> CheckIdRequest(string[] encoding)
         {
-            if (Statement.GetValue(charbuff[3]) == "-1") // umowny znak na brak id sesji
+            List<byte[]> toReturn = new List<byte[]>();
+            foreach (var str in encoding)
             {
-                Console.WriteLine("Nowy klient!");
-                return true;
+                switch (Statement.GetKey(str))  // sprawdzenie czy wyslano zapytanie o przydzial ID sesji
+                {
+                    case Statement._Keys.ST:
+                        if (Statement.GetValue(str) == Statement._ST.Request)
+                        {
+                         ID++;
+                         Statement st = new Statement(ID);
+                         toReturn = st.CreateBuffer();
+                        }
+                        else
+                            throw new ArgumentNullException("Nieprawidlowe zadanie ID");
+                        break;
+                }
             }
-            else
-                return false;
+            return toReturn;
+        }
+
+        public bool CheckExit(string[] encoding)
+        {
+            foreach (var str in encoding)
+            {
+                switch (Statement.GetKey(str))  // sprawdzenie czy klient chce sie rozlaczyc
+                {
+                    case Statement._Keys.ST:
+                        if (Statement.GetValue(str) == Statement._ST.Exit)
+                        {
+                            return true;
+                        }
+                        break;
+                }
+            }
+            return false;
         }
     }
 }

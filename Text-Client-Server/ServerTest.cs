@@ -8,38 +8,53 @@ namespace Text_Client_Server
         private static void Main(string[] args)
         {
             Server server = new Server(27015); //  tworzenie gniazda na danym porcie
-            Statement st = new Statement();
-            double answer = 0;
-            string charbuff;
-            try
+            while (true)
             {
-                byte[] buffer = new byte[1024];
-                List<byte[]> bufferList = new List<byte[]>();
-                Console.WriteLine("Waiting");
-                while (true)
+                Statement st = new Statement();
+                string charbuff;
+                List<byte[]> bufferList;
+
+                server.Read(out charbuff); // oczekiwanie na IDSesji
+                st = new Statement(charbuff);
+                Console.WriteLine(st.ReadStatement());
+                bufferList = server.CheckIdRequest(st.Encoding()); // ustalenie IDsesji
+                Console.WriteLine("Przydzielono ID {0}", server.ID);
+                server.Write(bufferList); // wyslanie odpowiedzi
+                try
                 {
-                    server.Read(out charbuff);
-                    Console.WriteLine("".PadLeft(50, '*'));
-                    Console.WriteLine("Odebrane:");
-                    st = new Statement(charbuff);
-                    Console.WriteLine(st.ReadStatement());
-                    st.CreateAnswer(server.Calculate(st.Encoding()));   // obliczanie zadania
-                    bufferList = st.CreateBuffer();     // podzielenie komunikatu na czesci
-                    st = new Statement(st.GetCharBuffer());
-                    Console.WriteLine("Wyslane");
-                    Console.WriteLine("".PadLeft(50, '*'));
-                    server.Write(bufferList); // wyslanie odpowiedzi
-                    Console.WriteLine(st.ReadStatement());
+                    byte[] buffer = new byte[1024];
+                    Console.WriteLine("Waiting");
+                    while (true)
+                    {
+                        server.Read(out charbuff);
+                        Console.WriteLine("".PadLeft(50, '*'));
+                        Console.WriteLine("Odebrane:");
+                        st = new Statement(charbuff);
+                        Console.WriteLine(st.ReadStatement());
+                        if (server.CheckExit(st.Encoding()) == true)
+                        {
+                            Console.WriteLine("Klient sie rozlaczyl");
+                            break;
+                        }
 
+
+                        st.CreateAnswer(server.Calculate(st.Encoding())); // obliczanie zadania
+                        bufferList = st.CreateBuffer(); // podzielenie komunikatu na czesci
+                        st = new Statement(st.GetCharBuffer());
+                        Console.WriteLine("Wyslane");
+                        Console.WriteLine("".PadLeft(50, '*'));
+                        server.Write(bufferList); // wyslanie odpowiedzi
+                        Console.WriteLine(st.ReadStatement());
+                    }
                 }
-            }
 
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Source + " Exception");
-                Console.WriteLine(e.Message);
-            }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Source + " Exception");
+                    Console.WriteLine(e.Message);
+                }
 
+            }
             Console.ReadKey();
         }
     }

@@ -17,9 +17,18 @@ namespace Text_Client_Server
                 return str;
             }
 
-            if (UserInput.ToLower() == "history") //TODO: przetestowac
+            if (Statement.GetKey(UserInput.ToUpper()) == "HISTORIAID: ") 
             {
-                str[0] = "history";
+                str[0] = Statement._Keys.PHID;
+                str[1] = Statement.GetValue(UserInput);
+                Console.WriteLine("HIST: {0}, PARAM: {1}", str[0], str[1]);
+                return str;
+            }
+            else if (Statement.GetKey(UserInput.ToUpper()) == "HISTORIACID: ") 
+            {
+                str[0] = Statement._Keys.PHCID;
+                str[1] = Statement.GetValue(UserInput);
+                Console.WriteLine("HIST: {0}, PARAM: {1}", str[0], str[1]);
                 return str;
             }
 
@@ -48,28 +57,51 @@ namespace Text_Client_Server
         private static void Main()
         {
             Client client = new Client(27015);
+            Statement st = new Statement(); // zadanie przydzielenia IDsesji
+            List<byte[]> bufferList = new List<byte[]>();
+            string charbuff;
             try
             {
-                Statement st = new Statement(); // zadanie przydzielenia IDsesji
-                List<byte[]> bufferList = new List<byte[]>();
-                string charbuff;
-                while (true)
-                {
-                    Console.WriteLine("Proszę wpisać tekst");
-                    string[] UserInput = ReadUserInput();
-                    st = new Statement(UserInput, client.ID, client.CID);   //utworzenie nowego komunikatu
-                    bufferList = st.CreateBuffer(); 
-                    Console.WriteLine(st.ReadStatement()); 
-                    client.Write(bufferList);    //wyslanie listy  komunikatow
 
-                    client.Read(out charbuff);
-                    Console.WriteLine("Server: {0}", client.ReadAnswer(charbuff));
-                }
+                bufferList = client.GetIDRequest(); // utworzenie zapytania o przydzial ID
+                client.Write(bufferList); //  wyslanie zapytania o przydzial ID
+                client.Read(out charbuff);
+                st = new Statement(charbuff);
+                client.ChangeID(st.Encoding());
+                Console.WriteLine("Przydzielono {0} numer sesji", client.ID);
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Source + " Exception");
                 Console.WriteLine(e.Message);
+            }
+            while (true)
+                {
+                try { 
+                    Console.WriteLine("Proszę wpisać dzialanie matematyczne / historiaID: / historiaCID: ");
+                    string[] UserInput = ReadUserInput();
+                    if (UserInput[0] == "exit")
+                    {
+                        st = new Statement(client.ID, "exit");
+                        bufferList = st.CreateBuffer();
+                        client.Write(bufferList); //wyslanie listy  komunikatow
+                        break;
+                    }
+
+                    st = new Statement(UserInput, client.ID, client.CID); //utworzenie nowego komunikatu
+                    bufferList = st.CreateBuffer();
+                    Console.WriteLine(st.ReadStatement());
+                    client.Write(bufferList); //wyslanie listy  komunikatow
+
+                    client.Read(out charbuff);
+                    Console.WriteLine("Server: {0}", client.ReadAnswer(charbuff));
+
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Source + " Exception");
+                    Console.WriteLine(e.Message);
+                }
             }
 
             Console.ReadKey();
