@@ -28,7 +28,7 @@ namespace Text_Client_Server
         public List<byte[]> GetIDRequest()
         {
             Statement st = new Statement(ID);
-            List<byte[]> toReturn = st.CreateBuffer();
+            List<byte[]> toReturn = st.CreateBuffer(0);
             return toReturn;
         }
 

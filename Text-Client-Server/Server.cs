@@ -7,6 +7,9 @@ namespace Text_Client_Server
 {
     internal class Server : Host
     {
+        private History _history = new History();
+        private string _op, _arg1, _arg2, _answer;  // do tworzenia wpisu do historii
+
         public Server(int port) : base(port, IPAddress.Any)
         {
             _Socket.Bind(_IpEndPoint);
@@ -17,7 +20,7 @@ namespace Text_Client_Server
             if (n == 0)
                 return 1;
             Int64 result = 1;
-            for (int i = 1; i < n; i++)
+            for (int i = 1; i <= n; i++)
             {
                 result = checked(result * i);
             }
@@ -25,9 +28,41 @@ namespace Text_Client_Server
             return result;
         }
 
+        public bool CheckHistory(string[] encoding, out List<String> list)
+        {
+            list = new List<string>();
+            foreach (var str in encoding)
+            {
+                switch (Statement.GetKey(str)) //sprawdzenie operacji oraz argumentow
+                {
+                    case Statement._Keys.PHID:
+                        list = CheckHistoryID(Convert.ToInt32(Statement.GetValue(str)));
+                        return true;
+                        break;
+                    case Statement._Keys.PHCID:
+                        list = CheckHistoryCID(Convert.ToInt32(Statement.GetValue(str)));
+                        return true;
+                        break;
+                }
+            }
+            return false;
+        }
+
+        private List<String> CheckHistoryID(int id)
+        {
+            return _history.GetGistoryByID(id);
+
+
+        }
+
+        private List<String> CheckHistoryCID(int cid)
+        {
+            return _history.GetGistoryByCID(cid);
+        }
 
         public string Calculate(string[] encoding)
         {
+            CID++;
             string OP = "", answer = "";
             double Arg1 = 0, Arg2 = 0;
             foreach (var str in encoding)
@@ -137,7 +172,7 @@ namespace Text_Client_Server
                         {
                             ID++;
                             Statement st = new Statement(ID);
-                            toReturn = st.CreateBuffer();
+                            toReturn = st.CreateBuffer(0);
                         }
                         else
                             throw new ArgumentNullException("Nieprawidlowe zadanie ID");
@@ -166,6 +201,44 @@ namespace Text_Client_Server
             }
 
             return false;
+        }
+
+        public void AddArgsToHistory(string[] encoding)
+        {
+            foreach (var str in encoding)
+            {
+                switch (Statement.GetKey(str)) // sprawdzenie czy klient chce sie rozlaczyc
+                {
+                    case Statement._Keys.OP:
+                        _op = str;
+                        break;
+                    case Statement._Keys.Arg1:
+                        _arg1 = str;
+                        break;
+                    case Statement._Keys.Arg2:
+                        _arg2 = str;
+                        break;
+                }
+            }
+        }
+
+        public void AddAnswerToHistory(string[] encoding)
+        {
+            foreach (var str in encoding)
+            {
+                switch (Statement.GetKey(str))  // sprawdzenie czy klient chce sie rozlaczyc
+                {
+                    case Statement._Keys.Arg1:
+                        _answer = Statement.GetValue(str);
+                        _answer = "Arg3: " + _answer;   // zamiana arg1 na arg3
+                        break;
+                }
+            }
+            
+            _history.AddNewStatement(ID, CID, _arg1 + _op + _arg2 + _answer);
+            _op = _arg1 = _arg2 = _answer = null;
+
+
         }
     }
 }

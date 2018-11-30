@@ -10,8 +10,8 @@ namespace Text_Client_Server
 {
     internal class Element
     {
-        public string CalcID;
-        public string sessionID;
+        internal int CalcID;
+        internal int sessionID;
     }
 
     internal class History
@@ -20,44 +20,64 @@ namespace Text_Client_Server
 
         public History()
         {
-            _memory = new Dictionary<Element, string>(100);
+            _memory = new Dictionary<Element, string>(); //poczatkowa wielkosc slownika
         }
 
-        public void AddNewStatement(string id, string idCalc, string data)
+        public void AddNewStatement(int ID, int CID, string data)
         {
             Element e = new Element();
-            e.CalcID = idCalc;
-            e.sessionID = id;
-            _memory[e] = data;
+            e.CalcID = CID;
+            e.sessionID = ID;
+            _memory.Add(e, data);
         }
 
 
-        public List<string> DisplayMemoryByID(string id)
+        public List<string> GetGistoryByID(int ID)
         {
             List<string> toReturn = new List<string>();
-            foreach (var c in _memory)
+            List<KeyValuePair<Element, string>> list = _memory.ToList();
+            foreach (var p in list)
             {
-                if (c.Key.sessionID == id)
+                if (p.Key.sessionID == ID)
                 {
-                    toReturn.Add(c.Value);
+                    toReturn.Add(p.Value);
                 }
             }
             return toReturn;
 
         }
 
-        public List<string> DisplayMemoryByCalc(string idCalc)
+        public List<string> GetGistoryByCID(int CID)
         {
             List<string> toReturn = new List<string>();
-            foreach (var c in _memory)
+            List<KeyValuePair<Element, string>> list = _memory.ToList();
+            foreach (var p in list)
             {
-                if (c.Key.CalcID == idCalc)
-                {
-                    toReturn.Add(c.Value);
-                }
+                if (p.Key.CalcID == CID)
+                    toReturn.Add(p.Value);
             }
-
             return toReturn;
         }
+
+        public void ReadHistoryByID(int ID)
+        {
+           List<string> temp = GetGistoryByID(ID);
+            foreach (var str in temp)
+            {
+                Console.WriteLine(str);
+            }
+        }
+
+        public void ReadHistoryByCID(int CID)
+        {
+            List<string> temp = GetGistoryByCID(CID);
+            foreach (var str in temp)
+            {
+                Console.WriteLine(str);
+            }
+
+        }
+
+
     }
 }

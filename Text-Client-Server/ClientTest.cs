@@ -20,14 +20,14 @@ namespace Text_Client_Server
             if (Statement.GetKey(UserInput.ToUpper()) == "HISTORIAID: ") 
             {
                 str[0] = Statement._Keys.PHID;
-                str[1] = Statement.GetValue(UserInput);
+                str[1] = Statement.GetValue(UserInput.ToUpper());
                 Console.WriteLine("HIST: {0}, PARAM: {1}", str[0], str[1]);
                 return str;
             }
             else if (Statement.GetKey(UserInput.ToUpper()) == "HISTORIACID: ") 
             {
                 str[0] = Statement._Keys.PHCID;
-                str[1] = Statement.GetValue(UserInput);
+                str[1] = Statement.GetValue(UserInput.ToUpper());
                 Console.WriteLine("HIST: {0}, PARAM: {1}", str[0], str[1]);
                 return str;
             }
@@ -84,13 +84,12 @@ namespace Text_Client_Server
                     if (UserInput[0] == "exit")
                     {
                         st = new Statement(client.ID, "exit");
-                        bufferList = st.CreateBuffer();
+                        bufferList = st.CreateBuffer(0);
                         client.Write(bufferList); //wyslanie listy  komunikatow
                         break;
                     }
-                    client.CID++;
-                    st = new Statement(UserInput, client.ID, client.CID); //utworzenie nowego komunikatu
-                    bufferList = st.CreateBuffer();
+                    st = new Statement(UserInput, client.ID, ref client.CID); //utworzenie nowego komunikatu
+                    bufferList = st.CreateBuffer(0);
                     Console.WriteLine(st.ReadStatement());
                     client.Write(bufferList); //wyslanie listy  komunikatow
 

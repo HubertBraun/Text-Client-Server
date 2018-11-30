@@ -158,43 +158,67 @@ namespace Text_Client_Server
                 Time += GetTime();
             }
         }
-        public Statement(string[] Arguments, int id, int cid) // argumenty, numer sekwencyjny, id sesji, id obliczen
+        public Statement(string[] Arguments, int id, ref int cid) // argumenty, numer sekwencyjny, id sesji, id obliczen
         {
-            Arg1 += Arguments[0]; // pierwsza liczba
-            switch (Arguments[1]) // rozpoznawanie operacji matematycznej
+            if(Arguments[0] == _Keys.PHID)
             {
-                case "*":
-                    Arg2 += Arguments[2];
-                    OP = _OP.Mul;
-                    break;
+                Console.WriteLine("Arg1 {0}", Arguments[1]);
+                PHID += Arguments[1];   //ID
+                OP = "";
+            }
+            else if (Arguments[0] == _Keys.PHCID)
+            {
+                Console.WriteLine("Arg1 {0}", Arguments[1]);
+                PHCID += Arguments[1];   //CID
+                OP = "";
+            }
+            else
+            {
+                Arg1 += Arguments[0]; // pierwsza liczba
+                switch (Arguments[1]) // rozpoznawanie operacji matematycznej
+                {
+                    case "*":
+                        cid++;
+                        CID += cid.ToString(); // przypisanie identyfikatora obliczen
+                        Arg2 += Arguments[2];
+                        OP = _OP.Mul;
+                        break;
 
-                case "/":
-                    Arg2 += Arguments[2];
-                    OP = _OP.Div;
-                    break;
+                    case "/":
+                        cid++;
+                        CID += cid.ToString(); // przypisanie identyfikatora obliczen
+                        Arg2 += Arguments[2];
+                        OP = _OP.Div;
+                        break;
 
-                case "-":
-                    Arg2 += Arguments[2];
-                    OP = _OP.Sub;
-                    break;
+                    case "-":
+                        cid++;
+                        CID += cid.ToString(); // przypisanie identyfikatora obliczen
+                        Arg2 += Arguments[2];
+                        OP = _OP.Sub;
+                        break;
 
-                case "^":
-                    Arg2 += Arguments[2];
-                    OP = _OP.Exp;
+                    case "^":
+                        cid++;
+                        CID += cid.ToString(); // przypisanie identyfikatora obliczen
+                        Arg2 += Arguments[2];
+                        OP = _OP.Exp;
 
-                    break;
-                case "!":
-                    OP = _OP.Fac; // w przypadku silni operacja nie ma znaczenia
-                    break;
+                        break;
+                    case "!":
+                        cid++;
+                        CID += cid.ToString(); // przypisanie identyfikatora obliczen
+                        OP = _OP.Fac; // w przypadku silni operacja nie ma znaczenia
+                        break;
 
-                default:
-                    throw new ArgumentException("Nierozpoznana operacja matematyczna");
-                    break;
+                    default:
+                        throw new ArgumentException("Nierozpoznana operacja matematyczna");
+                        break;
+                }
+
             }
 
-
             ID += id.ToString(); // przypisanie identyfikatora sesji
-            CID += cid.ToString(); // przypisanie identyfikatora obliczen
             ST = _ST.Autorized; // do testow
             Time += GetTime();
         }
@@ -212,10 +236,75 @@ namespace Text_Client_Server
             NS = GetValue(NS);
             Time = GetValue(Time);
             OP = GetValue(OP);
-            ST = GetValue(ST);
+            double temp;
+            if (double.TryParse(arg1, out temp))
+                ST = GetValue(ST);  // autoryzacja
+            else
+                ST = _ST.Error; // blad
             CID = GetValue(CID);
-            //_charbuffer = ID + NS + Time + OP +CID + PH + Arg1 + Arg2 + Arg3;
         }
+
+        public List<byte[]> CreateHistoryAnswer(List<string> list)
+        {
+            Time = GetTime();
+            Arg1 = ""; // zresetowanie argumentow
+            Arg2 = "";
+            Arg3 = "";
+            OP = "";
+            ST = _ST.Autorized; //TODO: do testow
+            NS = "";
+
+            Regex reg = new Regex("([A-Z]\\S+): (((?![A-Z]).)*)");
+            int ns = 1; // numer ostatniego komunikatu
+            List<byte[]> toReturn = new List<byte[]>(); //lista komunikatow
+            foreach (var match in list)
+            {
+                MatchCollection matches = reg.Matches(match);
+                for (int i = 0; i < matches.Count; i++) // wpisanie wyrazen do lancuchow znakow
+                {
+                    ns++; // obliczenie numeru sekwencyjnego
+                    switch (GetKey(matches[i].Value)) // sprawdzenie czy klient chce sie rozlaczyc
+                    {
+                        case _Keys.OP:  // przy kazdej operacji dodaje status, na pozniejszym etapie
+                            ns++;
+                            break;
+                    }
+                }
+            }
+
+            foreach (var match in list)
+            {
+                MatchCollection matches = reg.Matches(match);
+                string[] keys = new string[matches.Count];
+
+                for (int i = 0; i < matches.Count; i++) // wpisanie wyrazen do lancuchow znakow
+                {
+                    switch (GetKey(matches[i].Value)) // sprawdzenie czy klient chce sie rozlaczyc
+                    {
+                        case _Keys.OP:
+                            OP = GetValue(matches[i].Value);
+                            if (GetValue(matches[i].Value) == _OP.Fac)  //  w przypadku silni
+                                Arg2 = "";
+                            break;
+                        case _Keys.Arg1:
+                            Arg1 = GetValue(matches[i].Value);
+                            break;
+                        case _Keys.Arg2:
+                            Arg2 = GetValue(matches[i].Value);
+                            break;
+                        case _Keys.Arg3:
+                            Arg3 = GetValue(matches[i].Value);
+                            toReturn.AddRange(CreateBuffer(ns - toReturn.Count));
+                            PHCID = "";
+                            PHID = "";
+                            break;
+                    }
+                }
+            }
+
+            return toReturn;
+        }
+
 
         private void BufferCopy(Array src, Array dst, int dstOffset)
         {
@@ -250,9 +339,17 @@ namespace Text_Client_Server
             else return 0;
         }
 
-        public List<byte[]> CreateBuffer()
+        public List<byte[]> CreateBuffer(int ns)
         {
-            if (GetValue(ST) == _ST.Request || GetValue(ST) == _ST.Exit)    // ustalanie IDsesji lub konczenie polaczenia
+            if (ns != 0)    // ustalone przez parametr
+            {
+                NS = ns.ToString();
+            }
+            else if (PHID != "" || PHCID !=  "")    // zapytanie o historie
+            {
+                NS = "2";
+            }
+            else if (GetValue(ST) == _ST.Request || GetValue(ST) == _ST.Exit)    // ustalanie IDsesji lub konczenie polaczenia
             {
                 NS = "1";
             }

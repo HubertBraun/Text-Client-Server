@@ -13,6 +13,7 @@ namespace Text_Client_Server
                 Statement st = new Statement();
                 string charbuff;
                 List<byte[]> bufferList;
+                List<string> historyList;
                 Console.WriteLine("Waiting");
                 server.Read(out charbuff); // oczekiwanie na IDSesji
                 st = new Statement(charbuff);
@@ -20,6 +21,7 @@ namespace Text_Client_Server
                 bufferList = server.CheckIdRequest(st.Encoding()); // ustalenie IDsesji
                 Console.WriteLine("Przydzielono ID {0}", server.ID);
                 server.Write(bufferList); // wyslanie odpowiedzi
+
                 try
                 {
                     byte[] buffer = new byte[1024];
@@ -30,21 +32,40 @@ namespace Text_Client_Server
                         Console.WriteLine("Odebrane:");
                         st = new Statement(charbuff);
                         Console.WriteLine(st.ReadStatement());
-                        if (server.CheckExit(st.Encoding()) == true)
-                        {
-                            Console.WriteLine("Klient sie rozlaczyl");
-                            break;
-                        }
-                            
 
-                        st.CreateAnswer(server.Calculate(st.Encoding())); // obliczanie zadania
-                        bufferList = st.CreateBuffer(); // podzielenie komunikatu na czesci
-                        st = new Statement(st.GetCharBuffer());
-                        Console.WriteLine("Wyslane");
-                        Console.WriteLine("".PadLeft(50, '*'));
-                        server.Write(bufferList); // wyslanie odpowiedzi
-                        Console.WriteLine(st.ReadStatement());
-                    }
+                        if (server.CheckHistory(st.Encoding(), out historyList))
+                        {
+                            Console.WriteLine("ID: {0}, CID {1}",server.ID,server.CID);
+                            foreach (var s in historyList)
+                            {
+                                Console.WriteLine(s);
+                            }
+
+                            server.Write(st.CreateHistoryAnswer(historyList));
+                            continue;
+                        }
+                            if (server.CheckExit(st.Encoding()))
+                            {
+                                Console.WriteLine("Klient sie rozlaczyl");
+                                break;
+                            }
+
+                            server.AddArgsToHistory(st.Encoding()); //dodanie argumantow i operacji do historii
+
+
+                            st.CreateAnswer(server.Calculate(st.Encoding())); // obliczanie zadania
+                            bufferList = st.CreateBuffer(0); // podzielenie komunikatu na czesci
+
+
+                            st = new Statement(st.GetCharBuffer());
+
+
+                            server.AddAnswerToHistory(st.Encoding()); // dodanie odpowiedzi do historii
+                            Console.WriteLine("Wyslane");
+                            Console.WriteLine("".PadLeft(50, '*'));
+                            server.Write(bufferList); // wyslanie odpowiedzi
+                            Console.WriteLine(st.ReadStatement());
+                        }
                 }
 
                 catch (Exception e)
