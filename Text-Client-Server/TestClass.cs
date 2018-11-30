@@ -9,7 +9,6 @@ namespace Text_Client_Server
             {
                 try
                 {
-                    Console.WriteLine(Statement.GetTime());
                     Console.ReadLine();
                     break;
                 }

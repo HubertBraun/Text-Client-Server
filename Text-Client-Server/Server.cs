@@ -8,7 +8,6 @@ namespace Text_Client_Server
     internal class Server : Host
     {
         private History _history = new History();
-        private string _op, _arg1, _arg2, _answer;  // do tworzenia wpisu do historii
 
         public Server(int port) : base(port, IPAddress.Any)
         {

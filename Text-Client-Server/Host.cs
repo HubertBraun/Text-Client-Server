@@ -15,7 +15,7 @@ namespace Text_Client_Server
         protected Socket _Socket;
         public int CID = -1; // identyfikator obliczen
         public int ID = -1; // identyfikator sesji
-
+        protected string _op, _arg1, _arg2, _answer;  // do wpisywania i odczytywania historii
         public Host(int port, IPAddress IP)
         {
             _port = port;

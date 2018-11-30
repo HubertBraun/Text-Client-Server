@@ -94,6 +94,11 @@ namespace Text_Client_Server
                     client.Write(bufferList); //wyslanie listy  komunikatow
 
                     client.Read(out charbuff);
+                    if (UserInput[0] == Statement._Keys.PHID)
+                    {
+                        Console.WriteLine(client.ReadHistory(charbuff));
+                    }
+                    else
                     Console.WriteLine("Server: {0}", client.ReadAnswer(charbuff));
 
                 }
