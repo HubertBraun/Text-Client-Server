@@ -7,20 +7,18 @@ namespace Text_Client_Server
 {
     internal class Client : Host
     {
-
-
         public Client(int port) : base(port, IPAddress.Parse("127.0.0.1"))
         {
         }
 
-        public string ReadAnswer(string charbuff)
+        public string ReadAnswer(string charbuff)   // wyswietlenie odpowiedzi
         {
             string[] encoding = Statement.Encoding(charbuff);
             foreach (var str in encoding)
             {
                 switch (Statement.GetKey(str))
                 {
-                    case Statement._Keys.Arg1:
+                    case Statement._Keys.Arg1:  // odpowiedz znajduje sie w arg1
                         return Statement.GetValue(str);
                 }
             }
@@ -28,7 +26,7 @@ namespace Text_Client_Server
             return "Brak odpowiedzi";
         }
 
-        private string EncodeOperation(string OP)
+        private string EncodeOperation(string OP)   // zamiana nazw operacji na ich symbole
         {
             switch (OP)
             {
@@ -49,7 +47,7 @@ namespace Text_Client_Server
         }
 
 
-        public string ReadHistory(string charbuff)
+        public string ReadHistory(string charbuff)  // odczytanie historii
         {
             string[] encoding = Statement.Encoding(charbuff);
             StringBuilder toReturn = new StringBuilder();
@@ -58,12 +56,12 @@ namespace Text_Client_Server
                 switch (Statement.GetKey(str))
                 {
                     case Statement._Keys.Arg1:
-                      _arg1 = Statement.GetValue(str);
+                        _arg1 = Statement.GetValue(str);
                         break;
                     case Statement._Keys.Arg2:
                         _arg2 = Statement.GetValue(str);
                         break;
-                    case Statement._Keys.Arg3:
+                    case Statement._Keys.Arg3:  // arg3 znajduje sie na koncu wpisu w historii
                         _answer = Statement.GetValue(str);
                         toReturn.Append(_arg1);
                         toReturn.Append(EncodeOperation(_op));
@@ -75,6 +73,13 @@ namespace Text_Client_Server
                         break;
                     case Statement._Keys.OP:
                         _op = Statement.GetValue(str);
+                        break;
+                    case Statement._Keys.ST:
+                        if (Statement.GetValue(str) == Statement._ST.Error)
+                        {
+                            return Statement._ERR.History;
+                        }
+
                         break;
                 }
             }
@@ -89,12 +94,12 @@ namespace Text_Client_Server
             return toReturn;
         }
 
-        public void ChangeID(string[] encoding)
+        public void ChangeID(string[] encoding) // zmiana id sesjo
         {
             List<byte[]> toReturn = new List<byte[]>();
             foreach (var str in encoding)
             {
-                switch (Statement.GetKey(str))  // sprawdzenie czy wyslano zapytanie o przydzial ID sesji
+                switch (Statement.GetKey(str)) // sprawdzenie czy wyslano zapytanie o przydzial ID sesji
                 {
                     case Statement._Keys.ID:
                         ID = Convert.ToInt32(Statement.GetValue(str));

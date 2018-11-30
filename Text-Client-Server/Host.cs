@@ -8,14 +8,15 @@ namespace Text_Client_Server
 {
     internal class Host
     {
-        protected EndPoint _EndPoint;
-        protected IPEndPoint _IpEndPoint;
-        protected int _port;
-        public int _ReceivedData = 0;
-        protected Socket _Socket;
+        protected EndPoint _EndPoint;   // punkt docelowy
+        protected IPEndPoint _IpEndPoint;   // ip punktu docelowego
+        protected string _op, _arg1, _arg2, _answer; // do wpisywania i odczytywania historii
+        protected int _port;    // port
+        public int _ReceivedData = 0;   // dlugosc otrzymanych danych
+        protected Socket _Socket;   // gniazdo
         public int CID = -1; // identyfikator obliczen
         public int ID = -1; // identyfikator sesji
-        protected string _op, _arg1, _arg2, _answer;  // do wpisywania i odczytywania historii
+
         public Host(int port, IPAddress IP)
         {
             _port = port;
@@ -25,28 +26,29 @@ namespace Text_Client_Server
         }
 
 
-        public void Write(List<byte[]> bufferList)
+        public void Write(List<byte[]> bufferList)  // wysylanie wiadomosci 
         {
             foreach (var buffer in bufferList)
             {
-                string temp = BufferUtilites.BufferToString(buffer,buffer.Length);
-                temp += "\n";   // dla zwiekszenia czytelnosci dodaje znak nowej linii
+                string temp = BufferUtilites.BufferToString(buffer, buffer.Length);
+                temp += "\n"; // dla zwiekszenia czytelnosci dodaje znak nowej linii
                 _Socket.SendTo(temp.ToBuffer(), buffer.Length + 1, SocketFlags.None, _EndPoint);
             }
         }
 
-        public void Read(out string buffer)
+        public void Read(out string buffer) // odbieranie wiadomosci
         {
             byte[] tempbuff = new byte[1024];
             string charbuff;
-            buffer = "";
+            buffer = "";    // resetowanie buffera
             int NS = -1; // liczba komunikatow do odebrania
             Regex reg = new Regex("NumerSekwencyjny: ([0-9]*)"); // wyrazenie znajdujace liczbe komunikatow
 
             while (NS != 1) // numer ostaniego komunikatu
             {
                 _ReceivedData = _Socket.ReceiveFrom(tempbuff, ref _EndPoint);
-                charbuff = BufferUtilites.BufferToString(tempbuff, _ReceivedData - 1); // ostatni znak to znak nowej linii
+                charbuff = BufferUtilites.BufferToString(tempbuff,
+                    _ReceivedData - 1); // ostatni znak to znak nowej linii
                 buffer += charbuff; // dodanie do listy
                 Match m = reg.Match(charbuff);
                 GroupCollection groups = m.Groups;

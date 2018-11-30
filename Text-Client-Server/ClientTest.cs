@@ -17,21 +17,18 @@ namespace Text_Client_Server
                 return str;
             }
 
-            if (Statement.GetKey(UserInput.ToUpper()) == "HISTORIAID: ") 
+            if (Statement.GetKey(UserInput.ToUpper()) == "HISTORIAID: ")
             {
                 str[0] = Statement._Keys.PHID;
                 str[1] = Statement.GetValue(UserInput.ToUpper());
-                Console.WriteLine("HIST: {0}, PARAM: {1}", str[0], str[1]);
                 return str;
             }
-            else if (Statement.GetKey(UserInput.ToUpper()) == "HISTORIACID: ") 
+            else if (Statement.GetKey(UserInput.ToUpper()) == "HISTORIACID: ")
             {
                 str[0] = Statement._Keys.PHCID;
                 str[1] = Statement.GetValue(UserInput.ToUpper());
-                Console.WriteLine("HIST: {0}, PARAM: {1}", str[0], str[1]);
                 return str;
             }
-
             Match m = reg.Match(UserInput);
             GroupCollection groups = m.Groups;
             if (m.Groups.Count == 4)
@@ -62,45 +59,46 @@ namespace Text_Client_Server
             string charbuff;
             try
             {
-
                 bufferList = client.GetIDRequest(); // utworzenie zapytania o przydzial ID
                 client.Write(bufferList); //  wyslanie zapytania o przydzial ID
-                client.Read(out charbuff);
+                client.Read(out charbuff);  // odczytanie odpowiedzi
                 st = new Statement(charbuff);
-                client.ChangeID(st.Encoding());
-                Console.WriteLine("Przydzielono {0} numer sesji", client.ID);
+                client.ChangeID(st.Encoding()); // deserializacja komunikatu
+                Console.WriteLine("Przydzielony numer sesji: {0} ", client.ID);
             }
-            catch (Exception e) 
+            catch (Exception e)
             {
                 Console.WriteLine(e.Source + " Exception");
                 Console.WriteLine(e.Message);
             }
 
-            while (true)    // petla glowna
+            while (true) // petla glowna
+            {
+                try
                 {
-                try { 
                     Console.WriteLine("Proszę wpisać dzialanie matematyczne / historiaID: / historiaCID: ");
                     string[] UserInput = ReadUserInput();
-                    if (UserInput[0] == "exit")
+                    if (UserInput[0] == "exit") // zakonczenie polaczenia wyslaniem odpowiedniego komunikatu
                     {
                         st = new Statement(client.ID, "exit");
                         bufferList = st.CreateBuffer(0);
                         client.Write(bufferList); //wyslanie listy  komunikatow
                         break;
                     }
+
                     st = new Statement(UserInput, client.ID, ref client.CID); //utworzenie nowego komunikatu
-                    bufferList = st.CreateBuffer(0);
-                    Console.WriteLine(st.ReadStatement());
+                    bufferList = st.CreateBuffer(0);    // podzial komunikatu na czesci
                     client.Write(bufferList); //wyslanie listy  komunikatow
 
-                    client.Read(out charbuff);
-                    if (UserInput[0] == Statement._Keys.PHID)
+                    client.Read(out charbuff);  // odczytanie komunikatu
+                    if (UserInput[0] == Statement._Keys.PHID || UserInput[0] == Statement._Keys.PHCID)  // jesli otrzymano historie
                     {
-                        Console.WriteLine(client.ReadHistory(charbuff));
+                        Console.WriteLine(client.ReadHistory(charbuff));    // odczytanie wszytkich wpisow
                     }
                     else
-                    Console.WriteLine("Server: {0}", client.ReadAnswer(charbuff));
-
+                    {
+                        Console.WriteLine("CID: {0} Odpowiedz: {1}",client.CID ,client.ReadAnswer(charbuff));  // odczytanie odpowiedzi
+                    }
                 }
                 catch (Exception e)
                 {

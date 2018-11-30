@@ -61,7 +61,6 @@ namespace Text_Client_Server
             internal const string CID = "IDObliczen: ";
             internal const string PHID = "HistoriaID: ";
             internal const string PHCID = "HistoriaCID: ";
-
         }
 
         internal struct _OP // pole operacji
@@ -79,8 +78,6 @@ namespace Text_Client_Server
             internal const string Error = "blad";
             internal const string Request = "ustalanieidsesji";
             internal const string Exit = "konczeniepolaczenia";
-            internal const string ID = "nieprawildowyidentyfikator";
-            internal const string CID = "nieprawildowyidentyfikatorobliczen";
         }
 
 
@@ -89,13 +86,13 @@ namespace Text_Client_Server
             internal const string NotAllowed = "dzielenieprzezzero";
             internal const string OverFlow = "przepelnienie";
             internal const string Factorial = "silniazliczbyujemnej";
+            internal const string History = "odmowadostepu";
             internal const string Other = "nierozpoznanyblad";
         }
 
-
         #endregion
 
-        public Statement(string buffer)
+        public Statement(string buffer) // tworzenie komunikatu
         {
             string[] encoding = Encoding(buffer);
 
@@ -158,18 +155,17 @@ namespace Text_Client_Server
                 Time += GetTime();
             }
         }
+
         public Statement(string[] Arguments, int id, ref int cid) // argumenty, numer sekwencyjny, id sesji, id obliczen
         {
-            if(Arguments[0] == _Keys.PHID)
+            if (Arguments[0] == _Keys.PHID)
             {
-                Console.WriteLine("Arg1 {0}", Arguments[1]);
-                PHID += Arguments[1];   //ID
+                PHID += Arguments[1]; //ID
                 OP = "";
             }
             else if (Arguments[0] == _Keys.PHCID)
             {
-                Console.WriteLine("Arg1 {0}", Arguments[1]);
-                PHCID += Arguments[1];   //CID
+                PHCID += Arguments[1]; //CID
                 OP = "";
             }
             else
@@ -215,7 +211,6 @@ namespace Text_Client_Server
                         throw new ArgumentException("Nierozpoznana operacja matematyczna");
                         break;
                 }
-
             }
 
             ID += id.ToString(); // przypisanie identyfikatora sesji
@@ -228,30 +223,37 @@ namespace Text_Client_Server
             return DateTime.UtcNow.ToString();
         }
 
-        public void CreateAnswer(string arg1)
+        public void CreateAnswer(string arg1)   // odpowiedz serwera, zawiera liczbe lub blad
         {
-            Arg1 = Arg2 = Arg3 = "";
-            Arg1 = arg1;
+            Arg1 = Arg2 = Arg3 = "";  // zresetowanie argumentow
+            Arg1 = arg1;    // przypisanie odpowiedzi
             ID = GetValue(ID);
             NS = GetValue(NS);
             Time = GetValue(Time);
             OP = GetValue(OP);
             double temp;
             if (double.TryParse(arg1, out temp))
-                ST = GetValue(ST);  // autoryzacja
+                ST = GetValue(ST); // autoryzacja
             else
                 ST = _ST.Error; // blad
             CID = GetValue(CID);
         }
 
-        public List<byte[]> CreateHistoryAnswer(List<string> list)
+        public List<byte[]> CreateHistoryAnswer(List<string> list)  // wyslanie historii operacji
         {
             Time = GetTime();
-            Arg1 = ""; // zresetowanie argumentow
-            Arg2 = "";
-            Arg3 = "";
-            OP = "";
-            ST = _ST.Autorized; //TODO: do testow
+            Arg1 = Arg2 = Arg3 = "";  // zresetowanie argumentow
+            OP = "";  // zresetowanie operacji    
+            if (list.Any())
+                ST = _ST.Autorized;
+            else
+            {
+                ST = _ST.Error;
+                Arg1 = _ERR.History;
+                NS = "3";
+                return CreateBuffer(3);
+            }
+
             NS = "";
 
             Regex reg = new Regex("([A-Z]\\S+): (((?![A-Z]).)*)");
@@ -265,7 +267,7 @@ namespace Text_Client_Server
                     ns++; // obliczenie numeru sekwencyjnego
                     switch (GetKey(matches[i].Value)) // sprawdzenie czy klient chce sie rozlaczyc
                     {
-                        case _Keys.OP:  // przy kazdej operacji dodaje status, na pozniejszym etapie
+                        case _Keys.OP: // przy kazdej operacji dodaje status, na pozniejszym etapie
                             ns++;
                             break;
                     }
@@ -283,7 +285,7 @@ namespace Text_Client_Server
                     {
                         case _Keys.OP:
                             OP = GetValue(matches[i].Value);
-                            if (GetValue(matches[i].Value) == _OP.Fac)  //  w przypadku silni
+                            if (GetValue(matches[i].Value) == _OP.Fac) //  w przypadku silni
                                 Arg2 = "";
                             break;
                         case _Keys.Arg1:
@@ -306,13 +308,13 @@ namespace Text_Client_Server
         }
 
 
-        private void BufferCopy(Array src, Array dst, int dstOffset)
+        private void BufferCopy(Array src, Array dst, int dstOffset)    // kopiowanie buffora
         {
             Buffer.BlockCopy(src, 0, dst, dstOffset, src.Length);
         }
 
 
-        private byte[] CreateHeader()
+        private byte[] CreateHeader()   // utworzenie naglowka
         {
             int lenght = 0;
             byte[] header = new byte[(_Keys.ID + ID).Length + (_Keys.NS + NS).Length + (_Keys.Time + Time).Length];
@@ -325,9 +327,9 @@ namespace Text_Client_Server
             return header;
         }
 
-        private int UniteData(string data, ref byte[] buffer)
+        private int UniteData(string data, ref byte[] buffer)   // dodanie danych do naglowka
         {
-            byte[] header = CreateHeader();
+            byte[] header = CreateHeader(); // utworzenie naglowka
             if (GetValue(data) != "")
             {
                 buffer = new byte[header.Length + data.Length];
@@ -339,25 +341,26 @@ namespace Text_Client_Server
             else return 0;
         }
 
-        public List<byte[]> CreateBuffer(int ns)
+        public List<byte[]> CreateBuffer(int ns)    // utworzenie buffora
         {
-            if (ns != 0)    // ustalone przez parametr
+            if (ns != 0) // ustalone przez parametr
             {
                 NS = ns.ToString();
             }
-            else if (PHID != "" || PHCID !=  "")    // zapytanie o historie
+            else if (PHID != "" || PHCID != "") // zapytanie o historie
             {
                 NS = "2";
             }
-            else if (GetValue(ST) == _ST.Request || GetValue(ST) == _ST.Exit)    // ustalanie IDsesji lub konczenie polaczenia
+            else if (GetValue(ST) == _ST.Request || GetValue(ST) == _ST.Exit
+            ) // ustalanie IDsesji lub konczenie polaczenia
             {
                 NS = "1";
             }
-            else if (GetValue(OP) == _OP.Fac || Arg2 == "")  //silnia
+            else if (GetValue(OP) == _OP.Fac || Arg2 == "") //silnia
             {
                 NS = "4";
             }
-            else    // zwykle dzialanie
+            else // zwykle dzialanie
             {
                 NS = "5";
             }
@@ -380,8 +383,8 @@ namespace Text_Client_Server
             {
                 lenghts.Add(lenght);
                 bufferlist.Add(tempbuff);
-
             }
+
             _charbuffer += _Keys.ID + ID;
             _charbuffer += _Keys.ST + ST;
             _charbuffer += _Keys.OP + OP;
@@ -392,7 +395,6 @@ namespace Text_Client_Server
                 lenghts.Add(lenght);
                 bufferlist.Add(tempbuff);
                 _charbuffer += _Keys.CID + CID;
-
             }
 
             lenght = UniteData(_Keys.PHID + PHID, ref tempbuff);
@@ -401,7 +403,6 @@ namespace Text_Client_Server
                 lenghts.Add(lenght);
                 bufferlist.Add(tempbuff);
                 _charbuffer += _Keys.PHID + PHID;
-
             }
 
             lenght = UniteData(_Keys.PHCID + PHCID, ref tempbuff);
@@ -410,7 +411,6 @@ namespace Text_Client_Server
                 lenghts.Add(lenght);
                 bufferlist.Add(tempbuff);
                 _charbuffer += _Keys.PHCID + PHCID;
-
             }
 
             lenght = UniteData(_Keys.Arg1 + Arg1, ref tempbuff);
@@ -419,7 +419,6 @@ namespace Text_Client_Server
                 lenghts.Add(lenght);
                 bufferlist.Add(tempbuff);
                 _charbuffer += _Keys.Arg1 + Arg1;
-
             }
 
             lenght = UniteData(_Keys.Arg2 + Arg2, ref tempbuff);
@@ -428,7 +427,6 @@ namespace Text_Client_Server
                 lenghts.Add(lenght);
                 bufferlist.Add(tempbuff);
                 _charbuffer += _Keys.Arg2 + Arg2;
-
             }
 
             lenght = UniteData(_Keys.Arg3 + Arg3, ref tempbuff);
@@ -437,7 +435,6 @@ namespace Text_Client_Server
                 lenghts.Add(lenght);
                 bufferlist.Add(tempbuff);
                 _charbuffer += _Keys.Arg3 + Arg3;
-
             }
 
             return bufferlist; // zwraca bufor oraz dlugosc poszczegolnych sektorow
@@ -447,7 +444,8 @@ namespace Text_Client_Server
         {
             return _charbuffer;
         }
-        public string ReadStatement()
+
+        public string ReadStatement()   // wyswietlenie komunikatu
         {
             string[] temp = Encoding();
             StringBuilder StrBuilder = new StringBuilder();
@@ -471,14 +469,13 @@ namespace Text_Client_Server
             return matches.Value;
         }
 
-        public string[] Encoding()
+        public string[] Encoding()  // deserializacja
         {
             return Encoding(_charbuffer);
         }
 
         public static string[] Encoding(string charbuffer)
         {
-
             Regex reg = new Regex("([A-Z]\\S+): (((?![A-Z]).)*)");
             MatchCollection matches = reg.Matches(charbuffer);
             string[] str = new string[matches.Count];

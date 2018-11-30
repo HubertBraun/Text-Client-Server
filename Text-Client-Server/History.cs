@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Text_Client_Server
 {
-    internal class Element
+    internal struct Element // przechowuje id sesji oraz obliczen
     {
         internal int CalcID;
         internal int sessionID;
@@ -20,10 +20,10 @@ namespace Text_Client_Server
 
         public History()
         {
-            _memory = new Dictionary<Element, string>(); //poczatkowa wielkosc slownika
+            _memory = new Dictionary<Element, string>();
         }
 
-        public void AddNewStatement(int ID, int CID, string data)
+        public void AddNewStatement(int ID, int CID, string data)   // dodanie nowego wpisu
         {
             Element e = new Element();
             e.CalcID = CID;
@@ -32,7 +32,7 @@ namespace Text_Client_Server
         }
 
 
-        public List<string> GetGistoryByID(int ID)
+        public List<string> GetGistoryByID(int ID)  // pobranie wpisu
         {
             List<string> toReturn = new List<string>();
             List<KeyValuePair<Element, string>> list = _memory.ToList();
@@ -43,11 +43,11 @@ namespace Text_Client_Server
                     toReturn.Add(p.Value);
                 }
             }
-            return toReturn;
 
+            return toReturn;
         }
 
-        public List<string> GetGistoryByCID(int CID)
+        public List<string> GetGistoryByCID(int CID)    // pobranie wpisu
         {
             List<string> toReturn = new List<string>();
             List<KeyValuePair<Element, string>> list = _memory.ToList();
@@ -56,28 +56,31 @@ namespace Text_Client_Server
                 if (p.Key.CalcID == CID)
                     toReturn.Add(p.Value);
             }
+
             return toReturn;
         }
 
-        public void ReadHistoryByID(int ID)
+        public void ReadHistoryByID(int ID) // oczytanie wpisow
         {
-           List<string> temp = GetGistoryByID(ID);
+            List<string> temp = GetGistoryByID(ID);
             foreach (var str in temp)
             {
                 Console.WriteLine(str);
             }
         }
 
-        public void ReadHistoryByCID(int CID)
+        public void ReadHistoryByCID(int CID)   // odczytanie wpisow
         {
             List<string> temp = GetGistoryByCID(CID);
             foreach (var str in temp)
             {
                 Console.WriteLine(str);
             }
-
         }
 
-
+        public void Clearhistory()  // czyszczenie historii
+        {
+            _memory.Clear();
+        }
     }
 }

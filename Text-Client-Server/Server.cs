@@ -14,7 +14,7 @@ namespace Text_Client_Server
             _Socket.Bind(_IpEndPoint);
         }
 
-        private Int64 CalculateFactorial(double n)
+        private Int64 CalculateFactorial(double n)  // liczenie silni
         {
             if (n == 0)
                 return 1;
@@ -27,7 +27,7 @@ namespace Text_Client_Server
             return result;
         }
 
-        public bool CheckHistory(string[] encoding, out List<String> list)
+        public bool CheckHistory(string[] encoding, out List<String> list)  // sprawdzenie czy zapytanie dotyczy historii
         {
             list = new List<string>();
             foreach (var str in encoding)
@@ -44,22 +44,21 @@ namespace Text_Client_Server
                         break;
                 }
             }
+
             return false;
         }
 
-        private List<String> CheckHistoryID(int id)
+        private List<String> CheckHistoryID(int id) // proba uzyskania wpisow o danym id
         {
             return _history.GetGistoryByID(id);
-
-
         }
 
-        private List<String> CheckHistoryCID(int cid)
+        private List<String> CheckHistoryCID(int cid)   // proba uzyskania wpisow o danym cid
         {
             return _history.GetGistoryByCID(cid);
         }
 
-        public string Calculate(string[] encoding)
+        public string Calculate(string[] encoding)  // obliczenia zapytania klienta
         {
             CID++;
             string OP = "", answer = "";
@@ -159,8 +158,8 @@ namespace Text_Client_Server
             return answer;
         }
 
-        public List<byte[]> CheckIdRequest(string[] encoding)
-        {
+        public List<byte[]> CheckIdRequest(string[] encoding)   // sprawdzenie czy zapytanie dotyczy 
+        {                                                       // przydzielenia id sesji
             List<byte[]> toReturn = new List<byte[]>();
             foreach (var str in encoding)
             {
@@ -183,7 +182,7 @@ namespace Text_Client_Server
             return toReturn;
         }
 
-        public bool CheckExit(string[] encoding)
+        public bool CheckExit(string[] encoding)    // sprawdzenie czy zapytanie dotyczy zakonczenia polaczenia
         {
             foreach (var str in encoding)
             {
@@ -202,7 +201,7 @@ namespace Text_Client_Server
             return false;
         }
 
-        public void AddArgsToHistory(string[] encoding)
+        public void AddArgsToHistory(string[] encoding) // dodanie armunetow do historii
         {
             foreach (var str in encoding)
             {
@@ -221,23 +220,26 @@ namespace Text_Client_Server
             }
         }
 
-        public void AddAnswerToHistory(string[] encoding)
+        public void AddAnswerToHistory(string[] encoding)   // dodanie odpowiedzi do historii
         {
             foreach (var str in encoding)
             {
-                switch (Statement.GetKey(str))  // sprawdzenie czy klient chce sie rozlaczyc
+                switch (Statement.GetKey(str)) // sprawdzenie czy klient chce sie rozlaczyc
                 {
                     case Statement._Keys.Arg1:
                         _answer = Statement.GetValue(str);
-                        _answer = "Arg3: " + _answer;   // zamiana arg1 na arg3
+                        _answer = "Arg3: " + _answer; // zamiana arg1 na arg3
                         break;
                 }
             }
-            
-            _history.AddNewStatement(ID, CID, _arg1 + _op + _arg2 + _answer);
-            _op = _arg1 = _arg2 = _answer = null;
 
+            _history.AddNewStatement(ID, CID, _arg1 + _op + _arg2 + _answer);   // utworzenie nowego wpisu
+            _op = _arg1 = _arg2 = _answer = "";
+        }
 
+        public void ClearHistory()  // czyszczenie historii
+        {
+            _history.Clearhistory();
         }
     }
 }
