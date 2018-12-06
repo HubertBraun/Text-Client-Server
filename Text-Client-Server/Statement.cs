@@ -54,10 +54,10 @@ namespace Text_Client_Server
             internal const string Arg1 = "Arg1: ";
             internal const string Arg2 = "Arg2: ";
             internal const string Arg3 = "Arg3: ";
-            internal const string OP = "Operacja: ";
-            internal const string ST = "Status: ";
-            internal const string NS = "NumerSekwencyjny: ";
-            internal const string ID = "IDSesji: ";
+            internal const string OP = "Op: ";
+            internal const string ST = "St: ";
+            internal const string NS = "NS: ";
+            internal const string ID = "ID: ";
             internal const string CID = "IDObliczen: ";
             internal const string PHID = "HistoriaID: ";
             internal const string PHCID = "HistoriaCID: ";
@@ -70,6 +70,8 @@ namespace Text_Client_Server
             internal const string Sub = "odejmowanie";
             internal const string Exp = "potegowanie";
             internal const string Fac = "silnia";
+            internal const string Null = "brak";
+
         }
 
         internal struct _ST // pole statusu
@@ -144,6 +146,7 @@ namespace Text_Client_Server
             ID = id.ToString();
             ST = _ST.Request;
             Time += GetTime();
+            OP = _OP.Null;
         }
 
         public Statement(int id, string str) // zadanie przydzielenia id
@@ -349,12 +352,14 @@ namespace Text_Client_Server
             }
             else if (PHID != "" || PHCID != "") // zapytanie o historie
             {
-                NS = "2";
+                NS = "3";
+                OP = _OP.Null;
             }
             else if (GetValue(ST) == _ST.Request || GetValue(ST) == _ST.Exit
             ) // ustalanie IDsesji lub konczenie polaczenia
             {
-                NS = "1";
+                NS = "2";
+                OP = _OP.Null;
             }
             else if (GetValue(OP) == _OP.Fac || Arg2 == "") //silnia
             {
@@ -364,6 +369,10 @@ namespace Text_Client_Server
             {
                 NS = "5";
             }
+
+            ID = GetValue(ID);      // niweluje blad zwiazany z podwojnym kluczem
+            PHID = GetValue(PHID);  // niweluje blad zwiazany z podwojnym kluczem
+            PHCID = GetValue(PHCID);    // niweluje blad zwiazany z podwojnym kluczem
 
             _charbuffer = "";
             byte[] header = CreateHeader();

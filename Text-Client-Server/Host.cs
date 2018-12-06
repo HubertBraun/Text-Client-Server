@@ -30,9 +30,7 @@ namespace Text_Client_Server
         {
             foreach (var buffer in bufferList)
             {
-                string temp = BufferUtilites.BufferToString(buffer, buffer.Length);
-                temp += "\n"; // dla zwiekszenia czytelnosci dodaje znak nowej linii
-                _Socket.SendTo(temp.ToBuffer(), buffer.Length + 1, SocketFlags.None, _EndPoint);
+                _Socket.SendTo(buffer, buffer.Length, SocketFlags.None, _EndPoint);
             }
         }
 
@@ -42,13 +40,13 @@ namespace Text_Client_Server
             string charbuff;
             buffer = "";    // resetowanie buffera
             int NS = -1; // liczba komunikatow do odebrania
-            Regex reg = new Regex("NumerSekwencyjny: ([0-9]*)"); // wyrazenie znajdujace liczbe komunikatow
+            Regex reg = new Regex(Statement._Keys.NS + "([0-9]*)"); // wyrazenie znajdujace liczbe komunikatow
 
             while (NS != 1) // numer ostaniego komunikatu
             {
                 _ReceivedData = _Socket.ReceiveFrom(tempbuff, ref _EndPoint);
                 charbuff = BufferUtilites.BufferToString(tempbuff,
-                    _ReceivedData - 1); // ostatni znak to znak nowej linii
+                    _ReceivedData ); // ostatni znak to znak nowej linii
                 buffer += charbuff; // dodanie do listy
                 Match m = reg.Match(charbuff);
                 GroupCollection groups = m.Groups;

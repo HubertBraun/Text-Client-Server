@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Net;
 using System.Text.RegularExpressions;
 
+
 namespace Text_Client_Server
 {
     internal class Server : Host
     {
         private History _history = new History();
 
-        public Server(int port) : base(port, IPAddress.Any)
+        public Server(int port) : base(port, IPAddress.Parse("127.0.0.1"))
         {
             _Socket.Bind(_IpEndPoint);
         }
@@ -93,7 +94,7 @@ namespace Text_Client_Server
                         }
 
                         answer = (Arg1 / Arg2).ToString();
-                        Console.WriteLine("{0} / {1} = {2}", Arg1, Arg1, answer);
+                        Console.WriteLine("{0} / {1} = {2}", Arg1, Arg2, answer);
                         break;
 
                     case Statement._OP.Mul:
@@ -104,7 +105,7 @@ namespace Text_Client_Server
                         }
 
                         answer = checked(Arg1 * Arg2).ToString();
-                        Console.WriteLine("{0} * {1} = {2}", Arg1, Arg1, answer);
+                        Console.WriteLine("{0} * {1} = {2}", Arg1, Arg2, answer);
                         break;
 
                     case Statement._OP.Fac:
@@ -138,12 +139,12 @@ namespace Text_Client_Server
                             throw new ArgumentException("Przepelnienie!");
                         }
 
-                        Console.WriteLine("{0} ^ {1} = {2}", Arg1, Arg1, answer);
+                        Console.WriteLine("{0} ^ {1} = {2}", Arg1, Arg2, answer);
                         break;
 
                     case Statement._OP.Sub:
                         answer = (Arg1 - Arg2).ToString();
-                        Console.WriteLine("{0} - {1} = {2}", Arg1, Arg1, answer);
+                        Console.WriteLine("{0} - {1} = {2}", Arg1, Arg2, answer);
                         break;
                 }
             }
